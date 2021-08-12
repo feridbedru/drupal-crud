@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Entity
+{% endblock %}
+{% block pagetitle %}
+	{% trans %}
+	Entity{% endtrans %}
+{% endblock %}
+{% block body %}
+<style>
+label.required:after {
+    content: " *";
+    color: red;
+}
+</style>
+<h2 class="mt-3">Entity</h2>
+	<div class="row">
+		<div class="col-md-4">
+			{# {% if is_granted("entity_create") %} #}
+			<div class="card card-info">
+				<div class="card-header">
+					<h5 class="card-title">
+						{% if edit %}
+							Edit
+						{% else %}
+							Add New
+						{% endif %}
+					</h5>
+				</div>
+				<div class="card-body">
+					{% if edit  %}
+						{% set button_label = 'Update' %}
+					{% endif %} {{ include('entity/_form.html.twig') }}
+				</div>
+			</div>
+			{# {% endif %} #}
+		</div>
+		<div class="col-md-8">
+			<div class="card card-info">
+				<div class="card-header">
+					<h5 class="card-title">{% trans %}
+						Entity List{% endtrans %}</h5>
+				</div>
+				<div class="card-body">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th>#</th>
+								<th>{{ knp_pagination_sortable(entities, 'Singular Name'|trans, 'e.singular_name') }}</th>
+								<th>{{ knp_pagination_sortable(entities, 'Plural Name'|trans, 'e.plural_name') }}</th>
+								<th>{{ knp_pagination_sortable(entities, 'Namespace'|trans, 'e.namespace') }}</th>
+								<th>{{ knp_pagination_sortable(entities, 'Description'|trans, 'e.description') }}</th>
+								<th>{% trans %}Actions{% endtrans %}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% set i = 1 %}
+							{% for entity in entities %}
+								<tr>
+									<td>{{ i }}
+										{% set i = i+1 %}
+									</td>
+									<td>{{ entity.singularName }}</td>
+									<td>{{ entity.pluralName }}</td>
+									<td>{{ entity.namespace }}</td>
+									<td>{{ entity.description }}</td>
+									<td>
+ 										<a href="{{ path('entity_show', {'id': entity.id}) }}" class="btn btn-primary btn-sm mr-2">Show</a>
+ 										<a href="{{ path('field_index', {'entity': entity.id}) }}" class="btn btn-success btn-sm mr-2">Fields</a>
+										{# {% if is_granted("entity_edit") %} #}
+										<form class="d-inline mr-2" method="post">
+											<input type="hidden" name="edit" value="{{entity.id}}">
+											<button class="btn btn-warning btn-sm text-white" title="Edit">
+												Edit
+											</button>
+										</form>
+										{# {% endif %} #}
+										{# {% if is_granted("entity_delete") %} #}
+											<form method="post" class="d-inline" action="{{ path('entity_delete', {'id': entity.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
+												<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ entity.id) }}">
+												<button class="btn btn-danger btn-sm">
+													Delete
+												</button>
+											</form>
+										{# {% endif %} #}
+									</td>
+								</tr>
+							{% else %}
+								<tr>
+									<td colspan="6">{% trans %}no records found{% endtrans %}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					<div class="navigation">{{ knp_pagination_render(entities) }}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

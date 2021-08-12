@@ -1,0 +1,863 @@
+{% extends 'base.html.twig' %}
+{% block stylesheets %}
+<link rel="stylesheet" href="{{asset('assets/prism.css')}}" media="all"/>
+{% endblock %}
+{% block javascripts %}
+
+{% endblock %}
+{% block title %}Entity{% endblock %}
+
+{% block body %}
+<script src="{{asset('assets/prism.js')}}"></script>
+<h1 class="mt-5">Entity</h1>
+<div class="row">
+<div class="col-md-3">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Singular</th>
+                <td>{{ entity.singularName }}</td>
+            </tr>
+            <tr>
+                <th>Plural</th>
+                <td>{{ entity.pluralName }}</td>
+            </tr>
+            <tr>
+                <th>Namespace</th>
+                <td>{{ entity.namespace }}</td>
+            </tr>
+            <tr>
+                <th>Description</th>
+                <td>{{ entity.description }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a><br><br>
+    </div>
+    <div class="col-md-9">
+    <div id="accordion">
+      <div class="card">
+    <div class="card-header" id="headingOne">
+      <h5 class="mb-0">
+        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+    Permissions
+    </button>
+    append to <span class="text-success">{{ entity.namespace }}.permissions.yml</span>
+      </h5>
+    </div>
+
+    <div id="collapseOne" class="collapse " aria-labelledby="headingOne" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers" >
+<code class="language-yaml">
+#{{ entity.singularName|replace({' ': '_'}) |lower }}
+{{ entity.singularName|replace({' ': '_'}) |lower }} list:
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can list {{ entity.singularName|lower }}" 
+{{ entity.singularName|replace({' ': '_'}) |lower }} add:
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can add {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} show:
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can show {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} edit:
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} delete:
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}" 
+</code>
+</pre>
+      </div>
+    </div>
+  </div>  
+  <div class="card">
+    <div class="card-header" id="headingTwo">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+    Routing
+    </button>
+    append to <span class="text-success">{{ entity.namespace }}.routing.yml</span>
+      </h5>
+    </div>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-yaml">
+#{{ entity.singularName|replace({' ': '_'}) |lower }}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.index:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/index"
+  defaults:
+    _title: "List {{ entity.singularName| title }}"
+    _form: '\Drupal\{{ entity.namespace }}\FilterForm\{{ entity.singularName| title | replace({' ': ''}) }}SearchForm'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} list"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.add:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/add"
+  defaults:
+    _title: "Create New {{ entity.singularName| title }}"
+    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} add"
+    
+{{ entity.singularName|replace({' ': '_'}) |lower }}.show:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/show"
+  defaults:
+    _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::show'
+    _title: "Show {{ entity.singularName| title }}"
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} show"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.edit:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/edit"
+  defaults:
+    _title: "Edit {{ entity.singularName|title }}"
+    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
+  defaults:
+    _form: '\Drupal\{{ entity.namespace }}\DeleteForm\{{ entity.singularName| title |  replace({' ': ''}) }}DeleteForm'
+    _title: "Delete {{ entity.singularName| title }}"
+  requirements:
+    _access: "TRUE"
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"
+</code>
+</pre>
+      </div>
+    </div>
+  </div>
+   <div class="card">
+    <div class="card-header" id="headingThree">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+    Menu Links
+    </button>
+    append to <span class="text-success">{{ entity.namespace }}.links.menu.yml</span>
+      </h5>
+    </div>
+    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-yaml">
+{{ entity.namespace| lower }}.{{ entity.singularName|lower }}:
+  title: '{{ entity.singularName|title }}'
+  description: 'Configure {{ entity.singularName|title }}'
+  route_name: {{ entity.singularName| replace({' ': '_'}) | lower }}.index
+  menu_name: {{ entity.namespace| lower }}
+</code>
+</pre>
+      </div>
+    </div>
+  </div>
+ <div class="card">
+    <div class="card-header" id="headingFour">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+           Database install snippet        
+           </button>
+           append to <span class="text-success">{{ entity.namespace }}.install</span>
+      </h5>
+    </div>
+    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-php">
+    //{{ entity.pluralName| lower }}
+    $schema['{{ entity.pluralName|replace({' ': '_'}) |lower }}'] = array(
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            {% for field in fields %}
+'{{ field.name|replace({' ': '_'}) | lower  }}' => array(
+    {% if field.type == 1 %}
+            'type' => 'varchar',
+                'length' => {{ field.length ? field.length : 255 }},
+                'default' => '',
+    {% elseif field.type == 2 %}
+        'type' => 'int',
+        'unsigned' => TRUE,
+    {% elseif (field.type == 3) or (field.type == 7) %}
+            'type' => 'varchar',
+                'length' => {{ field.length ? field.length : 255 }},
+                'default' => '',
+    {% elseif field.type == 4 %}
+            'type' => 'text',
+    {% elseif field.type == 5 %}
+            'type' => 'longtext',
+    {% elseif field.type == 6 %}
+            'type' => 'varchar',
+                'length' => {{ field.length ? field.length : 15 }},
+    {% elseif field.type == 8 %}
+            'type' => 'float',
+    {% elseif field.type == 9 %}
+            'type' => 'int',
+                'length' => 20,
+    {% elseif field.type == 10 %}
+            'type' => 'date',
+                'mysql_type' => 'date',
+    {% elseif field.type == 11 %}
+            'type' => 'tinyint',
+                'mysql_type' => 'smallint',
+                'default' => 1,
+    {% endif %}
+            'not null' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
+            ),
+            {% endfor %}
+),
+        'primary key' => array(
+            'id',
+        ),
+    );
+</code>
+</pre>     
+    </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header" id="headingFive">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+          Controller 
+          </button>
+          <span class="text-success">{{ entity.singularName | title | replace({' ': ''}) }}Controller.php</span>
+      </h5>
+    </div>
+    <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-php">&lt;?php
+
+namespace Drupal\{{ entity.namespace }}\Controller;
+
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Database;
+use Drupal\Core\Url;
+{% set file = 0 %}
+{% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
+
+
+/**
+ * Class {{ entity.singularName | title | replace({' ': ''}) }}Controller
+ * @package Drupal\{{ entity.namespace }}\Controller
+ */
+class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends ControllerBase
+{
+    /**
+     * @return array
+     */
+    public function show($id)
+    {
+        $con = Database::getConnection();
+        $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('id', $id)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $data = $query->execute()->fetchAssoc();
+{% for field in fields %}
+{% if field.type == 11 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No";
+{% elseif field.type == 9 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = '';
+        $file = File::load($data['{{ field.name|replace({' ': '_'}) | lower  }}']);
+        if ($file)
+            ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
+{% else %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'];
+{% endif %}
+{% endfor %}
+        $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
+        $html = '
+        {% for field in fields %}
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
+        {% endfor %}
+        ';
+        $html .= '&lt;br>&lt;a href="' . $back . '" class="button button--primary">' . t('Back') . '&lt;/a>';
+
+        return [
+            '#type' => 'markup',
+            '#markup' => $html
+        ];
+    }
+}
+</code>
+</pre>      
+    </div>
+    </div>
+  </div>
+      <div class="card">
+    <div class="card-header" id="headingSix">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+          DeleteForm 
+          </button>
+          <span class="text-success">{{ entity.singularName | title | replace({' ': ''}) }}DeleteForm.php</span>
+      </h5>
+    </div>
+    <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-php">&lt;?php
+
+namespace Drupal\{{ entity.namespace }}\DeleteForm;
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\Core\Url;
+use Drupal\Core\Database\Database;
+use Drupal\portal\Controller\LogController;
+
+/**
+ * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
+ * @package Drupal\{{ entity.namespace }}\DeleteForm
+ */
+class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends ConfirmFormBase
+{
+
+    public $id;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getFormId()
+    {
+        return '{{ entity.singularName|replace({' ': '_'}) |lower }}_delete_form';
+    }
+
+    public function getQuestion()
+    {
+        return t('Delete {{ entity.singularName }}');
+    }
+
+    public function getCancelUrl()
+    {
+        return new Url('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+    }
+
+    public function getDescription()
+    {
+        return t('Do you want to delete {{ entity.singularName }} id %id ?', array('%id' => $this->id));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConfirmText()
+    {
+        return t('Delete it!');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCancelText()
+    {
+        return t('Cancel');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildForm(array $form, FormStateInterface $form_state, $id = NULL)
+    {
+        $this->id = $id;
+        return parent::buildForm($form, $form_state);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateForm(array &$form, FormStateInterface $form_state)
+    {
+        parent::validateForm($form, $form_state);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function submitForm(array &$form, FormStateInterface $form_state)
+    {
+        $conn = Database::getConnection();
+        $qry = $conn->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('id', $this->id)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $data = $qry->execute()->fetchAssoc();
+
+        $query = \Drupal::database();
+        $query->delete('{{ entity.pluralName|replace({' ': '_'}) | lower }}')
+            ->condition('id', $this->id)
+            ->execute();
+            
+        if ($query) {
+            $log = new LogController();
+            $target = substr($this->getFormId(), 0, -12);
+            $action = "DELETE";
+            $id = $this->id;
+            $log->setLog($action, $target, $id, $data);
+        }
+
+        \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| lower }}.');
+        $form_state->setRedirect('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+    }
+}
+</code>
+</pre>      
+    </div>
+    </div>
+  </div>
+      <div class="card">
+    <div class="card-header" id="headingSeven">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+          FilterForm 
+           </button>
+           <span class="text-success">{{ entity.singularName | title | replace({' ': ''}) }}SearchForm.php</span>
+      </h5>
+    </div>
+    <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code  class="language-php">&lt;?php
+
+namespace Drupal\{{ entity.namespace }}\FilterForm;
+
+use Drupal\Core\Database\Database;
+use Drupal\Core\Form\FormBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Drupal\Core\Link;
+
+class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends FormBase
+{
+
+    /**
+    * {@inheritdoc}
+    */
+    public function getFormId()
+    {
+        return '{{ entity.singularName|replace({' ': '_'}) |lower }}_search_form';
+    }
+
+    /**
+    * {@inheritdoc}
+    */
+    public function buildForm(array $form, FormStateInterface $form_state)
+    {
+        $header_table = array(
+            'id' => t('#'),
+            [
+{% for field in fields %}
+{% if field.isOnIndex == 1 %}
+                '{{ field.name|replace({' ': '_'}) | lower  }}' => $this->t('{{ field.name | title  }}'), 
+{% endif %}{% endfor %}
+            ],
+            [
+                'operations' => $this->t('Operations'),
+                'colspan' => 3,
+            ],
+        );
+
+        if (\Drupal::currentUser()->hasPermission('{{ entity.singularName|replace({' ': '_'}) |lower }} add')) {
+            $form['link'] = [
+                '#type' => 'link',
+                '#title' => $this->t('Add New'),
+                '#url' => Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.add'),
+                '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
+                '#attributes' => array('class' => array('button button-action button--primary button--small')),
+            ];
+        }
+
+        $resources = $this->getDataRows();
+
+        // render table
+        $form['table'] = [
+            '#id' => 'list-container',
+            '#type' => 'table',
+            '#header' => $header_table,
+            '#rows' =>  $resources,
+            '#empty' => $this->t('No records found'),
+            '#sticky' => TRUE,
+        ];
+
+        $form['pager'] = [
+            '#type' => 'pager',
+        ];
+
+        return $form;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateForm(array &$form, FormStateInterface $form_state)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function submitForm(array &$form, FormStateInterface $form_state)
+    {
+    }
+
+    private function getDataRows()
+    {
+        $query = \Drupal::database()->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}', ['id'{% for field in fields %}{% if field.isOnIndex == 1 %}, '{{ field.name|replace({' ': '_'}) | lower }}'{% endif %}{% endfor %}])
+            ->extend('Drupal\Core\Database\Query\TableSortExtender')
+            ->extend('Drupal\Core\Database\Query\PagerSelectExtender')
+            ->limit(10);
+        
+        $results = $query->execute()->fetchAll();
+
+        $rows = [];
+        $count = 0;
+
+        foreach ($results as $data) {
+            if ($data->id != 0) {
+
+                $count++;
+                $linkDelete = '';
+                $linkEdit = '';
+                $linkTranslate = '';
+
+                $url_view = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.show', ['id' => $data->id], []);
+                if (\Drupal::currentUser()->hasPermission('{{ entity.singularName|replace({' ': '_'}) |lower }} delete')) {
+                    $delete_options = array(
+                        'attributes' => array(
+                            'class' => array(
+                                'button--danger',
+                            ),
+                        ),
+                    );
+                    $url_delete = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.delete', ['id' => $data->id], []);
+                    $url_delete->setOptions($delete_options);
+                    $linkDelete = Link::fromTextAndUrl('Delete', $url_delete);
+                }
+
+                if (\Drupal::currentUser()->hasPermission('{{ entity.singularName|replace({' ': '_'}) |lower }} edit')) {
+                    $edit_options = array(
+                        'attributes' => array(
+                            'class' => array(
+                                'button--secondary',
+                            ),
+                        ),
+                    );
+                    $url_edit = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.edit', ['id' => $data->id], []);
+                    $linkEdit = Link::fromTextAndUrl('Edit', $url_edit);
+                    $url_edit->setOptions($edit_options);
+                }
+
+                $linkView = Link::fromTextAndUrl('View', $url_view);
+                $rows[$data->id] = array(
+                    'id' => $count,
+{% for field in fields %}{% if field.isOnIndex == 1 %}
+                    '{{ field.name|replace({' ': '_'}) | lower  }}' => $data->{{ field.name|replace({' ': '_'}) | lower  }}, 
+{% endif %}{% endfor %}
+                    'view' => $linkView,
+                    'edit' =>  $linkEdit,
+                    'delete' => $linkDelete,
+                );
+            }
+        }
+        return $rows;
+    }
+
+    function findRows(array &$form, FormStateInterface $form_state)
+    {
+        $field = $form_state->getValues();
+        
+        $rows = [];
+        $rows = $this->getDataRows();
+        $form['table']['#rows'] = $rows;
+
+        return $form['table'];
+    }
+}
+</code>
+</pre>      
+    </div>
+    </div>
+  </div>
+      <div class="card">
+    <div class="card-header" id="headingEight">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+          Form 
+          </button>
+          <span class="text-success">{{ entity.singularName | title | replace({' ': ''}) }}Form.php</span>
+      </h5>
+    </div>
+    <div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code  class="language-php">&lt;?php
+
+namespace Drupal\{{ entity.namespace }}\Form;
+
+use Drupal\Core\Database\Database;
+use Drupal\Core\Form\FormBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+use Drupal\{{ entity.namespace }}\Controller\LogController;
+{% set file = 0 %}
+{% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
+
+
+class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBase
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function getFormId()
+    {
+        return '{{ entity.singularName|replace({' ': '_'}) |lower }}_form';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildForm(array $form, FormStateInterface $form_state)
+    {
+{% for field in fields %}
+        $form['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
+            '#title' => $this->t('{{ field.name | title  }}'),
+            '#required' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
+    {% if field.type == 1 %}
+        '#type' => 'textfield',
+            '#maxlength' => {{ field.length ? field.length : 255 }},
+            '#default_value' => '',
+    {% elseif field.type == 2 %}
+        '#type' => 'number',
+                '#maxlength' => {{ field.length ? field.length : 255 }},
+                '#default_value' => '',
+    {% elseif field.type == 3 %}
+        '#type' => 'url',
+            '#maxlength' => {{ field.length ? field.length : 255 }},
+            '#default_value' => '',
+    {% elseif (field.type == 4) or (field.type == 5) %}
+        '#type' => 'text_format',
+            '#format' => 'basic_html',
+            '#default_value' => '',
+    {% elseif field.type == 6 %}
+        '#type' => 'tel',
+            '#maxlength' => {{ field.length ? field.length : 15 }},
+            '#default_value' => '',
+    {% elseif field.type == 7 %}
+        '#type' => 'email',
+            '#maxlength' => {{ field.length ? field.length : 45 }},
+            '#default_value' => '',
+    {% elseif field.type == 8 %}
+        '#type' => 'number',
+            '#default_value' => '',
+    {% elseif field.type == 9 %}
+        '#description' => $this->t(' Allowed file types: {{ field.validation }}'),
+            '#type' => 'managed_file',
+            '#default_value' => [],
+            '#upload_location' => 'public://{{entity.singularName|replace({' ': '_'}) |lower }}/',
+            '#upload_validators' => array(
+                'file_validate_extensions' => array('{{ field.validation }}')
+            ),
+    {% elseif field.type == 10 %}
+        '#type' => 'date',
+            '#default_value' => '',
+    {% elseif field.type == 11 %}
+            '#type' => 'checkbox',
+                '#default_value' => '',
+{% endif %}
+        '#attributes' => array('class' => array('form-control')),
+            '#wrapper_attributes' => ['class' => 'col-md-4 col-xs-12']
+        ];
+{% endfor %}
+
+        $form['submit'] = [
+            '#type' => 'submit',
+            '#value' => $this->t('Save'),
+            '#buttom_type' => 'primary'
+        ];
+
+        $form['#attached']['library'][] = '{{ entity.namespace}}/bootstrap';
+        return $form;
+    }
+
+    /**
+     * @param array $form
+     * @param FormStateInterface $form_state
+     */
+    public function validateForm(array &$form, FormStateInterface $form_state)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function submitForm(array &$form, FormStateInterface $form_state)
+    {
+{% for field in fields %}
+{% if field.type == 9 %}
+        $file = $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}');
+{% endif %}
+{% endfor %}
+        $data = array(
+{% for field in fields %}
+{% if field.type != 9 %}
+            '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'),
+{% else %}
+            '{{ field.name|replace({' ': '_'}) | lower  }}' => $file[0],
+{% endif %}
+{% endfor %}
+        );
+{% for field in fields %}
+{% if field.type == 9 %}
+        if ($file) {
+            $file = File::load($file[0]);
+            $file->setPermanent();
+            $file->save();
+        }
+{% endif %}
+{% endfor %}
+
+        $new = \Drupal::database()->insert('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->execute();
+
+        if ($new) {
+            $log = new LogController();
+            $target = rtrim($this->getFormId(), "_form");
+            $action = "ADD";
+            $id = $new;
+            $log->setLog($action, $target, $id, $data);
+        }
+
+        \Drupal::messenger()->addStatus('Succesfully saved');
+        $url = new Url('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+        $response = new RedirectResponse($url->toString());
+        $response->send();
+    }
+}
+</code>
+</pre>      
+        </div>
+    </div>
+  </div>
+      <div class="card">
+    <div class="card-header" id="headingNine">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+          Block </button>
+          <span class="text-success">{{ entity.singularName | title | replace({' ': ''}) }}Block.php</span>
+      </h5>
+    </div>
+    <div id="collapseNine" class="collapse" aria-labelledby="headingNine" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code  class="language-php">&lt;?php
+
+namespace Drupal\{{ entity.namespace }}\Plugin\Block;
+
+use Drupal\Core\Block\BlockBase;
+use Drupal\Core\Database\Database;
+use Drupal\Core\Url;
+{% set file = 0 %}
+{% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
+
+
+/**
+ * Provides a block called "{{ entity.singularName | title }} block".
+ *
+ * @Block(
+ *  id = "{{ entity.singularName|replace({' ': '_'}) |lower }}_block",
+ *  admin_label = @Translation("{{ entity.singularName | title }} block")
+ * )
+ */
+
+class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockBase
+{
+
+    /**
+     * {@inheritdoc}
+     */
+    public function build()
+    {
+        \Drupal::service('page_cache_kill_switch')->trigger();
+        $con = Database::getConnection();
+
+        $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('active', 1)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $datas = $query->execute()->fetchAll();
+
+        $html = '';
+        foreach ($datas as $data) {
+            $id = $data->id;
+{% for field in fields %}
+{% if field.type == 11 %}
+            ${{ field.name|replace({' ': '_'}) | lower  }} = $data->{{ field.name|replace({' ': '_'}) | lower  }} ? "Yes" : "No";
+{% elseif field.type == 9 %}
+            ${{ field.name|replace({' ': '_'}) | lower  }} = '';
+            $file = File::load($data->{{ field.name|replace({' ': '_'}) | lower  }});
+            if ($file)
+                ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
+{% else %}
+            ${{ field.name|replace({' ': '_'}) | lower  }} = $data->{{ field.name|replace({' ': '_'}) | lower  }};
+{% endif %}{% endfor %}
+            $html .= '
+            {% for field in fields %}
+            &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
+            {% endfor %}
+            ';
+        }
+        $html .= '';
+
+        return [
+            '#type' => 'markup',
+            '#markup' => $html,
+        ];
+    }
+
+    /**
+     * @return int
+     */
+    public function getCacheMaxAge() 
+    {
+        return 1;
+    }
+}
+</code>
+</pre>      
+    </div>
+    </div>
+
+    <div class="card">
+    <div class="card-header" id="headingten">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseten" aria-expanded="false" aria-controls="collapseten">
+          SQL </button>
+          <span class="text-success">Table Creation SQL</span>
+      </h5>
+    </div>
+    <div id="collapseten" class="collapse" aria-labelledby="headingten" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code  class="language-sql">
+CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
+    `id` INT NOT NULL AUTO_INCREMENT,
+{% for field in fields %}
+    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
+{% endfor %}
+    PRIMARY KEY `id`(`id`)
+)ENGINE = INNODB DEFAULT CHARSET = UTF8MB4;
+</code>
+</pre>
+      </div>
+    </div>
+    </div>
+  </div>
+  {# for the accordion #}
+</div>
+{# for the column #}
+</div>
+{# for the row #}
+</div>
+{% endblock %}

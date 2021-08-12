@@ -1,0 +1,66 @@
+{{ form_start(form) }}
+<div class="form-group">
+	<label>{{ form_label(form.name) }}</label> {{ form_widget(form.name,{'attr':{'class':'form-control'}}) }}
+	<div class="help-block with-errors"></div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.type) }}</label> {{ form_widget(form.type,{'attr':{'class':'form-control', 'id': 'fieldtype'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.length) }}</label> {{ form_widget(form.length,{'attr':{'class':'form-control'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+</div>
+<div class="row d-none" id="relation">
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.relation_entity) }}</label> {{ form_widget(form.relation_entity,{'attr':{'class':'form-control', 'id':'relation_entity'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.relation_field) }}</label> {{ form_widget(form.relation_field,{'attr':{'class':'form-control'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+</div>
+<div class="form-group">
+	<label>{{ form_label(form.description) }}</label> {{ form_widget(form.description,{'attr':{'class':'form-control'}}) }}
+	<div class="help-block with-errors"></div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.default_value) }}</label> {{ form_widget(form.default_value,{'attr':{'class':'form-control'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.validation) }}</label> {{ form_widget(form.validation,{'attr':{'class':'form-control'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.is_nullable) }}</label> {{ form_widget(form.is_nullable) }}
+	</div>
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.is_on_form) }}</label> {{ form_widget(form.is_on_form) }}
+	</div>
+</div>
+<div class="row">
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.is_on_index) }}</label> {{ form_widget(form.is_on_index) }}
+	</div>
+	<div class="form-group col-md-6">
+		<label>{{ form_label(form.is_on_show) }}</label> {{ form_widget(form.is_on_show) }}
+	</div>
+</div>
+{% if not button_label is defined  %}
+	<button class="btn btn-primary mr-3">{{ button_label|default('Save') }}</button>
+	<button class="btn  btn-warning" type="reset">Reset</button>
+{% else %}
+	<input type="hidden" name="edit" value="{{ edit }}">
+	<button class="btn btn-success mr-2">{{ button_label|default('Save') }}</button>
+	<a href="{{ path('field_index', {'entity': entity.id}) }}" class="btn btn-primary">
+		Cancel
+	</a>
+{% endif %} 
+{{ form_end(form) }}
