@@ -13,11 +13,11 @@ label.required:after {
     color: red;
 }
 </style>
+<a class="btn btn-primary" href="{{ path('entity_index')}}">Back to Entity</a>
 	<h2 class="mt-3">{{ entity.singularName|title }} Fields</h2>
 	<div class="row">
 		<div
 			class="col-md-4">
-			{# {% if is_granted("field_create") %} #}
 			<div class="card card-info">
 				<div class="card-header">
 					<h5 class="card-title">
@@ -34,7 +34,6 @@ label.required:after {
 					{% endif %} {{ include('field/_form.html.twig') }}
 				</div>
 			</div>
-			{# {% endif %} #}
 		</div>
 		<div class="col-md-8">
 			<div class="card card-info">
@@ -51,7 +50,6 @@ label.required:after {
 								<th>{{ knp_pagination_sortable(fields, 'Type'|trans, 'f.type') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Description'|trans, 'f.description') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Length'|trans, 'f.length') }}</th>
-								{# <th>{{ knp_pagination_sortable(fields, 'Default'|trans, 'f.default_value') }}</th> #}
 								<th>{{ knp_pagination_sortable(fields, 'Validation'|trans, 'f.validation') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Required'|trans, 'f.is_nullable') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'form'|trans, 'f.is_on_form') }}</th>
@@ -97,30 +95,24 @@ label.required:after {
 									</td>
 									<td>{{ field.description }}</td>
 									<td>{{ field.length }}</td>
-									{# <td>{{ field.defaultValue }}</td> #}
 									<td>{{ field.validation }}</td>
 									<td>{{ field.isNullable ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnForm ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnIndex ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnShow ? 'Yes' : 'No' }}</td>
 									<td>
-
-										{# {% if is_granted("field_edit") %} #}
 										<form class="d-inline" method="post">
 											<input type="hidden" name="edit" value="{{field.id}}">
 											<button class="btn btn-warning btn-sm text-white" title="Edit">
 												Edit
 											</button>
 										</form>
-										{# {% endif %} #}
-										{# {% if is_granted("field_delete") %} #}
 										<form method="post" class="d-inline" action="{{ path('field_delete', {'id': field.id, 'entity': entity.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">
 											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ field.id) }}">
 											<button class="btn btn-danger btn-sm">
 												Delete
 											</button>
 										</form>
-										{# {% endif %} #}
 									</td>
 								</tr>
 							{% else %}
@@ -138,7 +130,6 @@ label.required:after {
 {% endblock %}
 {% block javascripts %}
 	<script>
-	// $(document).ready(function(){
 		$('#field_type').change( function() {
 			var val = $(this).val();
 			if(val == 12) {
@@ -164,7 +155,5 @@ label.required:after {
 				});
 			});
 		});
-
-
 	</script>
 {% endblock %}

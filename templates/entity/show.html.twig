@@ -9,6 +9,7 @@
 
 {% block body %}
 <script src="{{asset('assets/prism.js')}}"></script>
+    <a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a>
 <h1 class="mt-5">Entity</h1>
 <div class="row">
 <div class="col-md-3">
@@ -31,9 +32,13 @@
                 <td>{{ entity.description }}</td>
             </tr>
         </tbody>
-    </table>
-
-    <a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a><br><br>
+    </table><hr>
+    <h3 class="text-success">Fields</h3>
+    <ol>
+    {% for field in entity.fields %}
+        <li><b>{{ field.name }}</b>: {% if field.type == 1 %} String {% elseif field.type == 2 %} Integer {% elseif field.type == 3 %} URL {% elseif field.type == 4 %} Text {% elseif field.type == 5 %} Longtext {% elseif field.type == 6 %} Phone {% elseif field.type == 7 %} Email {% elseif field.type == 8 %} Decimal {% elseif field.type == 9 %} File {% elseif field.type == 10 %} Date {% elseif field.type == 11 %} Boolean {% else %} Unknown {% endif %}</li>
+    {% endfor %}
+    </ol>
     </div>
     <div class="col-md-9">
     <div id="accordion">
@@ -601,7 +606,6 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-
 use Drupal\{{ entity.namespace }}\Controller\LogController;
 {% set file = 0 %}
 {% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
@@ -703,10 +707,12 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 {% endfor %}
         $data = array(
 {% for field in fields %}
-{% if field.type != 9 %}
-            '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'),
-{% else %}
+{% if field.type == 9 %}
             '{{ field.name|replace({' ': '_'}) | lower  }}' => $file[0],
+{% elseif field.type == 4 or field.type == 5 %}
+            '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}')['value'],
+{% else %}
+            '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'),
 {% endif %}
 {% endfor %}
         );
