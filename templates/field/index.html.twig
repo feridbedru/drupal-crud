@@ -89,6 +89,10 @@ label.required:after {
 											Date
 										{% elseif field.type == 11 %}
 											Boolean
+										{% elseif field.type == 12 %}
+											Relation
+										{% elseif field.type == 13 %}
+											DateTime
 										{% else %}
 											Unknown
 										{% endif %}

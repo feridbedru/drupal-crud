@@ -36,7 +36,7 @@
     <h3 class="text-success">Fields</h3>
     <ol>
     {% for field in entity.fields %}
-        <li><b>{{ field.name }}</b>: {% if field.type == 1 %} String {% elseif field.type == 2 %} Integer {% elseif field.type == 3 %} URL {% elseif field.type == 4 %} Text {% elseif field.type == 5 %} Longtext {% elseif field.type == 6 %} Phone {% elseif field.type == 7 %} Email {% elseif field.type == 8 %} Decimal {% elseif field.type == 9 %} File {% elseif field.type == 10 %} Date {% elseif field.type == 11 %} Boolean {% else %} Unknown {% endif %}</li>
+        <li><b>{{ field.name }}</b>: {% if field.type == 1 %} String {% elseif field.type == 2 %} Integer {% elseif field.type == 3 %} URL {% elseif field.type == 4 %} Text {% elseif field.type == 5 %} Longtext {% elseif field.type == 6 %} Phone {% elseif field.type == 7 %} Email {% elseif field.type == 8 %} Decimal {% elseif field.type == 9 %} File {% elseif field.type == 10 %} Date {% elseif field.type == 11 %} Boolean {% elseif field.type == 12 %} Relation {% elseif field.type == 13 %} DateTime {% else %} Unknown {% endif %}</li>
     {% endfor %}
     </ol>
     </div>
@@ -207,6 +207,11 @@
             'type' => 'tinyint',
                 'mysql_type' => 'smallint',
                 'default' => 1,
+    {% elseif field.type == 12 %}
+            'type' => 'int',
+    {% elseif field.type == 13 %}
+            'type' => 'date',
+                'mysql_type' => 'date',
     {% endif %}
             'not null' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
             ),
@@ -268,15 +273,29 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
         $file = File::load($data['{{ field.name|replace({' ': '_'}) | lower  }}']);
         if ($file)
             ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
+{% elseif field.type == 12 %}
+        ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';<br>
+        ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data['{{ field.name|replace({' ': '_'}) |lower}}'];<br>
+        if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
+            $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+                ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
+                ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}');
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+        }
 {% else %}
         ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'];
 {% endif %}
 {% endfor %}
         $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
         $html = '
-        {% for field in fields %}
+{% for field in fields %}
+{% if field.type == 12 %}
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '&lt;/p>
+{% else %}
         &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
-        {% endfor %}
+{% endif %}
+{% endfor %}
         ';
         $html .= '&lt;br>&lt;a href="' . $back . '" class="button button--primary">' . t('Back') . '&lt;/a>';
 
@@ -451,12 +470,11 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     {
         $header_table = array(
             'id' => t('#'),
-            [
+            
 {% for field in fields %}
 {% if field.isOnIndex == 1 %}
                 '{{ field.name|replace({' ': '_'}) | lower  }}' => $this->t('{{ field.name | title  }}'), 
 {% endif %}{% endfor %}
-            ],
             [
                 'operations' => $this->t('Operations'),
                 'colspan' => 3,
@@ -627,37 +645,48 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
     public function buildForm(array $form, FormStateInterface $form_state)
     {
 {% for field in fields %}
+{% if field.type == 12 %}
+
+        ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}} = array();<br>
+        $find_{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}', ['id', '{{ field.relationField.name |replace({' ': '_'}) |lower}}']);
+        ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+        foreach(${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}_data as $value){
+            ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}[$value->id] = $value->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+        }
+{% endif %}
+
         $form['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#title' => $this->t('{{ field.name | title  }}'),
             '#required' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
-    {% if field.type == 1 %}
+    {% if field.type == 1 and field.isOnForm == 1 %}
         '#type' => 'textfield',
             '#maxlength' => {{ field.length ? field.length : 255 }},
             '#default_value' => '',
-    {% elseif field.type == 2 %}
+    {% elseif field.type == 2 and field.isOnForm == 1 %}
         '#type' => 'number',
                 '#maxlength' => {{ field.length ? field.length : 255 }},
                 '#default_value' => '',
-    {% elseif field.type == 3 %}
+    {% elseif field.type == 3 and field.isOnForm == 1 %}
         '#type' => 'url',
             '#maxlength' => {{ field.length ? field.length : 255 }},
             '#default_value' => '',
-    {% elseif (field.type == 4) or (field.type == 5) %}
+    {% elseif (field.type == 4 and field.isOnForm == 1 ) or (field.type == 5 and field.isOnForm == 1) %}
         '#type' => 'text_format',
             '#format' => 'basic_html',
             '#default_value' => '',
-    {% elseif field.type == 6 %}
+    {% elseif field.type == 6 and field.isOnForm == 1 %}
         '#type' => 'tel',
             '#maxlength' => {{ field.length ? field.length : 15 }},
             '#default_value' => '',
-    {% elseif field.type == 7 %}
+    {% elseif field.type == 7 and field.isOnForm == 1 %}
         '#type' => 'email',
             '#maxlength' => {{ field.length ? field.length : 45 }},
             '#default_value' => '',
-    {% elseif field.type == 8 %}
+    {% elseif field.type == 8 and field.isOnForm == 1 %}
         '#type' => 'number',
             '#default_value' => '',
-    {% elseif field.type == 9 %}
+    {% elseif field.type == 9 and field.isOnForm == 1 %}
         '#description' => $this->t(' Allowed file types: {{ field.validation }}'),
             '#type' => 'managed_file',
             '#default_value' => [],
@@ -665,12 +694,18 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#upload_validators' => array(
                 'file_validate_extensions' => array('{{ field.validation }}')
             ),
-    {% elseif field.type == 10 %}
+    {% elseif field.type == 10 and field.isOnForm == 1 %}
         '#type' => 'date',
             '#default_value' => '',
-    {% elseif field.type == 11 %}
+    {% elseif field.type == 11 and field.isOnForm == 1 %}
             '#type' => 'checkbox',
                 '#default_value' => '',
+    {% elseif field.type == 12 and field.isOnForm == 1 %}
+            '#type' => 'select',
+            '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
+    {% elseif field.type == 13 and field.isOnForm == 1 %}
+        '#type' => 'datetime',
+            '#default_value' => '',
 {% endif %}
         '#attributes' => array('class' => array('form-control')),
             '#wrapper_attributes' => ['class' => 'col-md-4 col-xs-12']
@@ -805,12 +840,26 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
             $file = File::load($data->{{ field.name|replace({' ': '_'}) | lower  }});
             if ($file)
                 ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
+{% elseif field.type == 12 %}
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';<br>
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data['{{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}'];<br>
+            if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
+                $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+                    ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
+                    ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}');
+                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+            }
 {% else %}
             ${{ field.name|replace({' ': '_'}) | lower  }} = $data->{{ field.name|replace({' ': '_'}) | lower  }};
 {% endif %}{% endfor %}
             $html .= '
             {% for field in fields %}
-            &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
+{% if field.type == 12 %}
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '&lt;/p>
+{% else %}
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
+{% endif %}
             {% endfor %}
             ';
         }

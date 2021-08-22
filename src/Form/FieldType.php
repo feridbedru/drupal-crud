@@ -28,6 +28,7 @@ class FieldType extends AbstractType
                     'Date' => '10',
                     'Boolean' => '11',
                     'Relation' => '12',
+                    'DateTime' => '13',
                 ],
                 'placeholder' => "Choose Type",
                 'required' => true,
