@@ -491,7 +491,62 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
             ];
         }
 
-        $resources = $this->getDataRows();
+        $form['filters'] = [
+            '#type'  => 'fieldset',
+            '#title' => $this->t('Filter'),
+            '#open'  => true,
+            '#wrapper_attributes' => ['class' => 'row'],
+        ];
+
+{% for field in fields %}
+{% if field.isOnFilter == 1 and field.type != 12 %}
+        $form['filters']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
+            '#type' => '{% if field.type == 1 %} textfield {% elseif field.type == 2 %} number {% elseif field.type == 3 %} url {% elseif field.type == 6 %} tel {% elseif field.type == 7 %} email {% elseif field.type == 8 %} number {% elseif field.type == 10 %} date {% elseif field.type == 11 %} checkbox {% elseif field.type == 13 %} datetime {% else %} textfield {% endif %}',
+            '#title' => $this->t('{{ field.name | upper  }}'),
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
+            '#wrapper_attributes' => ['class' => 'col-md-3 col-xs-12']
+        ];
+
+{% elseif field.isOnFilter == 1 and field.type == 12  %}
+        ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}} = array();<br>
+        $find_{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}', ['id', '{{ field.relationField.name |replace({' ': '_'}) |lower}}']);
+        ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+        foreach(${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}_data as $value){
+            ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}[$value->id] = $value->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+        }
+        $form['filters']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
+            '#type' => 'select',
+            '#title' => $this
+                ->t('{{ field.name | upper  }}'),
+            '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
+            '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
+            '#attributes' => array('class' => array('form-select')),
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
+        ];
+
+{% endif %}
+{% endfor %}
+        $form['filters']['actions'] = [
+            '#type' => 'actions'
+        ];
+
+        $form['filters']['actions']['submit'] = [
+            '#type' => 'submit',
+            '#value' => t('Search'),
+            '#wrapper_attributes' => ['class' => 'mb-3'],
+            '#ajax' => [
+                'callback' => [$this, 'findRows'],
+                'wrapper' => 'list-container',
+            ],
+        ];
+
+{% for field in fields %}
+{% if field.isOnFilter == 1 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = "";
+{% endif %}
+{% endfor %}
+        $resources = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}{% if loop.first == false  %},{% endif %} ${{ field.name|replace({' ': '_'}) | lower  }}{% endif %}{% endfor %});
 
         // render table
         $form['table'] = [
@@ -524,14 +579,26 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     {
     }
 
-    private function getDataRows()
+    private function getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}{% if loop.first == false  %},{% endif %} ${{ field.name|replace({' ': '_'}) | lower  }}{% endif %}{% endfor %})
     {
         $query = \Drupal::database()->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
-            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}', ['id'{% for field in fields %}{% if field.isOnIndex == 1 %}, '{{ field.name|replace({' ': '_'}) | lower }}'{% endif %}{% endfor %}])
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}', ['id'{% for field in fields %}{% if field.isOnIndex == 1 or field.isOnFilter == 1 %}, '{{ field.name|replace({' ': '_'}) | lower }}'{% endif %}{% endfor %}])
             ->extend('Drupal\Core\Database\Query\TableSortExtender')
             ->extend('Drupal\Core\Database\Query\PagerSelectExtender')
             ->limit(10);
-        
+
+{% for field in fields %}
+{% if field.isOnFilter == 1 %}
+        if (${{ field.name|replace({' ': '_'}) | lower  }} != "") {
+{% if field.type == 1 %}
+            $query->condition('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}.{{ field.name|replace({' ': '_'}) | lower  }}', '%' . ${{ field.name|replace({' ': '_'}) | lower  }} . '%', 'like');
+{% else %}
+            $query->condition('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}.{{ field.name|replace({' ': '_'}) | lower  }}',  ${{ field.name|replace({' ': '_'}) | lower  }},  '=');
+{% endif %}
+        }
+{% endif %}
+{% endfor %}
+        $query->orderBy('id', 'ASC');
         $results = $query->execute()->fetchAll();
 
         $rows = [];
@@ -590,9 +657,13 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     function findRows(array &$form, FormStateInterface $form_state)
     {
         $field = $form_state->getValues();
-        
+{% for field in fields %}
+{% if field.isOnFilter == 1 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $field["{{ field.name|replace({' ': '_'}) | lower  }}"];
+{% endif %}
+{% endfor %}
         $rows = [];
-        $rows = $this->getDataRows();
+        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}{% if loop.first == false  %},{% endif %} ${{ field.name|replace({' ': '_'}) | lower  }}{% endif %}{% endfor %});
         $form['table']['#rows'] = $rows;
 
         return $form['table'];
