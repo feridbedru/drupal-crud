@@ -83,6 +83,11 @@ class Field
      */
     private $relation_field;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $is_on_filter;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -247,5 +252,17 @@ class Field
     public function __toString()
     {
         return $this->name;
+    }
+
+    public function getIsOnFilter(): ?bool
+    {
+        return $this->is_on_filter;
+    }
+
+    public function setIsOnFilter(bool $is_on_filter): self
+    {
+        $this->is_on_filter = $is_on_filter;
+
+        return $this;
     }
 }

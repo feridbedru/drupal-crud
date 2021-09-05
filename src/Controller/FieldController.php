@@ -72,26 +72,6 @@ class FieldController extends AbstractController
 
     }
 
-    #[Route('/listfields', name: 'fields_list', methods: ['GET'])]
-    public function list(Entity $entity): Response
-    {
-        $em=$this->getDoctrine()->getManager();
-        $entity_id = $entity->getId();
-
-        $fields_repo=$em->getRepository(Field::class);
-        $fields=$fields_repo->findBy(['entity'=>$entity_id]);
-        $fields_list=array();
-        foreach($fields as $key=>$value)
-        {
-            $fields_list[$value->getId()] = $value->getName();
-        }
-        return new Response(json_encode($fields_list));
-        // return $this->render('entity/show.html.twig', [
-        //     'entity' => $entity,
-        //     'fields' => $entity->getFields(),
-        // ]);
-    }
-
     #[Route('/{id}', name: 'field_delete', methods: ['POST'])]
     public function delete(Request $request, Field $field, EntityRepository $entityRepository): Response
     {

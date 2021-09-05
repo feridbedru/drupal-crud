@@ -48,12 +48,13 @@ label.required:after {
 								<th>#</th>
 								<th>{{ knp_pagination_sortable(fields, 'Name'|trans, 'f.name') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Type'|trans, 'f.type') }}</th>
-								<th>{{ knp_pagination_sortable(fields, 'Description'|trans, 'f.description') }}</th>
+								{# <th>{{ knp_pagination_sortable(fields, 'Description'|trans, 'f.description') }}</th> #}
 								<th>{{ knp_pagination_sortable(fields, 'Length'|trans, 'f.length') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Validation'|trans, 'f.validation') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Required'|trans, 'f.is_nullable') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'form'|trans, 'f.is_on_form') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'index'|trans, 'f.is_on_index') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'filter'|trans, 'f.is_on_filter') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'show'|trans, 'f.is_on_show') }}</th>
 								<th>{% trans %}Actions{% endtrans %}</th>
 							</tr>
@@ -97,12 +98,13 @@ label.required:after {
 											Unknown
 										{% endif %}
 									</td>
-									<td>{{ field.description }}</td>
+									{# <td>{{ field.description }}</td> #}
 									<td>{{ field.length }}</td>
 									<td>{{ field.validation }}</td>
 									<td>{{ field.isNullable ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnForm ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnIndex ? 'Yes' : 'No' }}</td>
+									<td>{{ field.isOnFilter ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnShow ? 'Yes' : 'No' }}</td>
 									<td>
 										<form class="d-inline" method="post">
@@ -141,22 +143,26 @@ label.required:after {
 			}
 			else{
 				$("#relation").addClass("d-none");
+				$('#field_relation_field option').remove();
 			}
 			$('#field_relation_entity').change( function() {
-				$.get($('#field_relation_field').val() + "/listfields", function (data) {
-					$('#field_relation_field option').remove();
-					field_exist = 0;
-					$first_time = 1;
-					var myObject = JSON.parse(data, function (key, value) {
-						if (value && typeof value !== 'object') {
-							if ($first_time == 1) {
-								field_exist = key;
-								$first_time = 0;
+				var entity = $('#field_relation_entity').val();
+				var url = "{{ path('fields_list', {'entity': 'entity_id' })}}";
+				url = url.replace("entity_id", entity);
+				$.ajax({
+					type: "POST",
+					url: url,
+					dataType: "json",
+					success: function(response) {
+						$('#field_relation_field option').remove();
+						for (var key in response) {
+							if (response.hasOwnProperty(key)) {
+								$('#field_relation_field').append("<option value='" + key + "'>" + response[key] + "</option>");
 							}
-							$('#field_relation_field').append("<option value='" + key + "'>" + value + "</option>");
 						}
-					});
+					}
 				});
+				
 			});
 		});
 	</script>

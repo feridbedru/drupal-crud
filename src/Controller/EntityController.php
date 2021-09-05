@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Entity;
+use App\Entity\Field;
 use App\Form\EntityType;
 use App\Repository\EntityRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -87,5 +88,22 @@ class EntityController extends AbstractController
         $this->addFlash("success","Deleted entity successfully.");
 
         return $this->redirectToRoute('entity_index');
+    }
+
+
+    #[Route('/{entity}/listfields', name: 'fields_list', methods: ['GET', 'POST'])]
+    public function list(Entity $entity): Response
+    {
+        $em=$this->getDoctrine()->getManager();
+        $entity_id = $entity->getId();
+
+        $fields_repo=$em->getRepository(Field::class);
+        $fields=$fields_repo->findBy(['entity'=>$entity_id]);
+        $fields_list=array();
+        foreach($fields as $key=>$value)
+        {
+            $fields_list[$value->getId()] = $value->getName();
+        }
+        return new Response(json_encode($fields_list));
     }
 }

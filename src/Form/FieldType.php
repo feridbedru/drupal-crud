@@ -41,6 +41,7 @@ class FieldType extends AbstractType
             ->add('is_on_form')
             ->add('is_on_index')
             ->add('is_on_show')
+            ->add('is_on_filter')
             ->add('relation_entity')
             ->add('relation_field')
         ;
