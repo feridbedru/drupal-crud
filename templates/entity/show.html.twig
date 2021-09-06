@@ -31,6 +31,10 @@
                 <th>Description</th>
                 <td>{{ entity.description }}</td>
             </tr>
+            <tr>
+                <th>Has Public Page</th>
+                <td>{{ entity.hasPublicPage ? 'Yes' : 'No' }}</td>
+            </tr>
         </tbody>
     </table><hr>
     <h3 class="text-success">Fields</h3>
@@ -167,7 +171,7 @@
       <div class="card-body">
 <pre class="line-numbers">
 <code class="language-php">
-    //{{ entity.pluralName| lower }}
+    //{{ entity.pluralName| title }}
     $schema['{{ entity.pluralName|replace({' ': '_'}) |lower }}'] = array(
         'fields' => array(
             'id' => array(
@@ -182,8 +186,8 @@
                 'length' => {{ field.length ? field.length : 255 }},
                 'default' => '',
     {% elseif field.type == 2 %}
-        'type' => 'int',
-        'unsigned' => TRUE,
+            'type' => 'int',
+                'unsigned' => TRUE,
     {% elseif (field.type == 3) or (field.type == 7) %}
             'type' => 'varchar',
                 'length' => {{ field.length ? field.length : 255 }},
@@ -216,7 +220,13 @@
             'not null' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
             ),
             {% endfor %}
-),
+'slug' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'default' => '',
+                'not null' => TRUE,
+            ),
+        ),
         'primary key' => array(
             'id',
         ),
@@ -470,10 +480,9 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     {
         $header_table = array(
             'id' => t('#'),
-            
 {% for field in fields %}
 {% if field.isOnIndex == 1 %}
-                '{{ field.name|replace({' ': '_'}) | lower  }}' => $this->t('{{ field.name | title  }}'), 
+            '{{ field.name|replace({' ': '_'}) | lower  }}' => $this->t('{{ field.name | title  }}'), 
 {% endif %}{% endfor %}
             [
                 'operations' => $this->t('Operations'),
@@ -502,7 +511,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% if field.isOnFilter == 1 and field.type != 12 %}
         $form['filters']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#type' => '{% if field.type == 1 %} textfield {% elseif field.type == 2 %} number {% elseif field.type == 3 %} url {% elseif field.type == 6 %} tel {% elseif field.type == 7 %} email {% elseif field.type == 8 %} number {% elseif field.type == 10 %} date {% elseif field.type == 11 %} checkbox {% elseif field.type == 13 %} datetime {% else %} textfield {% endif %}',
-            '#title' => $this->t('{{ field.name | upper  }}'),
+            '#title' => $this->t('{{ field.name | title  }}'),
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
             '#wrapper_attributes' => ['class' => 'col-md-3 col-xs-12']
         ];
@@ -518,7 +527,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         $form['filters']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#type' => 'select',
             '#title' => $this
-                ->t('{{ field.name | upper  }}'),
+                ->t('{{ field.name | title  }}'),
             '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
             '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
             '#attributes' => array('class' => array('form-select')),
@@ -702,6 +711,8 @@ use Drupal\{{ entity.namespace }}\Controller\UtilityController;
 
 class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBase
 {
+    public $id;
+
     /**
      * {@inheritdoc}
      */
@@ -713,8 +724,18 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
     /**
      * {@inheritdoc}
      */
-    public function buildForm(array $form, FormStateInterface $form_state)
+    public function buildForm(array $form, FormStateInterface $form_state, $id = NULL)
     {
+        $conn = Database::getConnection();
+        $data = array();
+        $this->id = $id;
+
+        if (isset($id)) {
+            $query = $conn->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+                ->condition('id', $id)
+                ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+            $data = $query->execute()->fetchAssoc();
+        }
 {% for field in fields %}
 {% if field.type == 12 %}
 
@@ -733,50 +754,50 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
     {% if field.type == 1 and field.isOnForm == 1 %}
         '#type' => 'textfield',
             '#maxlength' => {{ field.length ? field.length : 255 }},
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 2 and field.isOnForm == 1 %}
         '#type' => 'number',
-                '#maxlength' => {{ field.length ? field.length : 255 }},
-                '#default_value' => '',
+            '#maxlength' => {{ field.length ? field.length : 255 }},
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 3 and field.isOnForm == 1 %}
         '#type' => 'url',
             '#maxlength' => {{ field.length ? field.length : 255 }},
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif (field.type == 4 and field.isOnForm == 1 ) or (field.type == 5 and field.isOnForm == 1) %}
         '#type' => 'text_format',
             '#format' => 'basic_html',
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 6 and field.isOnForm == 1 %}
         '#type' => 'tel',
             '#maxlength' => {{ field.length ? field.length : 15 }},
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 7 and field.isOnForm == 1 %}
         '#type' => 'email',
             '#maxlength' => {{ field.length ? field.length : 45 }},
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 8 and field.isOnForm == 1 %}
         '#type' => 'number',
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 9 and field.isOnForm == 1 %}
         '#description' => $this->t(' Allowed file types: {{ field.validation }}'),
             '#type' => 'managed_file',
-            '#default_value' => [],
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : [],
             '#upload_location' => 'public://{{entity.singularName|replace({' ': '_'}) |lower }}/',
             '#upload_validators' => array(
                 'file_validate_extensions' => array('{{ field.validation }}')
             ),
     {% elseif field.type == 10 and field.isOnForm == 1 %}
         '#type' => 'date',
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 11 and field.isOnForm == 1 %}
             '#type' => 'checkbox',
-                '#default_value' => '',
+                '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 12 and field.isOnForm == 1 %}
             '#type' => 'select',
             '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
     {% elseif field.type == 13 and field.isOnForm == 1 %}
         '#type' => 'datetime',
-            '#default_value' => '',
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
 {% endif %}
         '#attributes' => array('class' => array('form-control')),
             '#wrapper_attributes' => ['class' => 'col-md-4 col-xs-12']
@@ -812,7 +833,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 {% endif %}
 {% endfor %}
         $util = new UtilityController();
-        $slug = $util->slugify('component', $form_state->getValue('{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}'));
+        $slug = $util->slugify('{{ entity.pluralName|replace({' ': '_'}) |lower }}', $form_state->getValue('{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}'));
         $data = array(
 {% for field in fields %}
 {% if field.type == 9 %}
@@ -823,6 +844,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'),
 {% endif %}
 {% endfor %}
+            'slug' => $slug
         );
 {% for field in fields %}
 {% if field.type == 9 %}
@@ -834,17 +856,30 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 {% endif %}
 {% endfor %}
 
-        $new = \Drupal::database()->insert('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->execute();
+        $status = '';
+        $this->id = $id;
+        if (isset($id)) {
+            $con = Database::getConnection();
+            $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+                ->condition('id', $id)
+                ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+            $original = $qry->execute()->fetchAssoc();
 
-        if ($new) {
-            $log = new LogController();
-            $target = rtrim($this->getFormId(), "_form");
-            $action = "ADD";
-            $id = $new;
-            $log->setLog($action, $target, $id, $data);
+            $edit = \Drupal::database()->update('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->condition('id', $id)->execute();
+
+            if ($edit) {
+                $util->logger("EDIT", "{{ entity.singularName | capitalize}}", $id, $original, $data);
+                $status = 'Updated {{ entity.singularName | capitalize }} Succesfully';
+            }
+        } else {
+            $new = \Drupal::database()->insert('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->execute();
+            if ($new) {
+                $util->logger("ADD", "{{ entity.singularName | capitalize}}", $new, $data);
+                $status = 'Created {{ entity.singularName | capitalize }} Succesfully';
+            }
         }
 
-        \Drupal::messenger()->addStatus('Succesfully saved');
+        \Drupal::messenger()->addStatus($status);
         $url = new Url('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
         $response = new RedirectResponse($url->toString());
         $response->send();

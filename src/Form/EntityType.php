@@ -16,6 +16,7 @@ class EntityType extends AbstractType
             ->add('plural_name')
             ->add('namespace')
             ->add('description')
+            ->add('has_public_page')
         ;
     }
 

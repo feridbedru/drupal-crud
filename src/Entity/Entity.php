@@ -44,6 +44,11 @@ class Entity
      */
     private $fields;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $has_public_page;
+
     public function __construct()
     {
         $this->fields = new ArrayCollection();
@@ -135,5 +140,17 @@ class Entity
     public function __toString()
     {
         return $this->singular_name;
+    }
+
+    public function getHasPublicPage(): ?bool
+    {
+        return $this->has_public_page;
+    }
+
+    public function setHasPublicPage(bool $has_public_page): self
+    {
+        $this->has_public_page = $has_public_page;
+
+        return $this;
     }
 }

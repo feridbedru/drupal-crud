@@ -19,6 +19,11 @@
         {{ form_widget(form.description,{'attr':{'class':'form-control'}}) }}
         <div class="help-block with-errors"></div>
     </div>
+    <div class="form-group">
+        <label>{{ form_label(form.has_public_page) }}</label>
+        {{ form_widget(form.has_public_page) }}
+        <div class="help-block with-errors"></div>
+    </div>
 {% if not button_label is defined  %}
     <button class="btn btn-primary mr-3">{{ button_label|default('Save') }}</button>
     <button class="btn  btn-warning" type="reset">Reset</button>

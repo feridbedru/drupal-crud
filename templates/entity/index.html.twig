@@ -50,6 +50,7 @@ label.required:after {
 								<th>{{ knp_pagination_sortable(entities, 'Plural Name'|trans, 'e.plural_name') }}</th>
 								<th>{{ knp_pagination_sortable(entities, 'Namespace'|trans, 'e.namespace') }}</th>
 								<th>{{ knp_pagination_sortable(entities, 'Description'|trans, 'e.description') }}</th>
+								<th>{{ knp_pagination_sortable(entities, 'Public Page'|trans, 'e.has_public_page') }}</th>
 								<th>{% trans %}Actions{% endtrans %}</th>
 							</tr>
 						</thead>
@@ -64,6 +65,7 @@ label.required:after {
 									<td>{{ entity.pluralName }}</td>
 									<td>{{ entity.namespace }}</td>
 									<td>{{ entity.description }}</td>
+									<td>{{ entity.hasPublicPage ? 'Yes' : 'No' }}</td>
 									<td>
  										<a href="{{ path('entity_show', {'id': entity.id}) }}" class="btn btn-primary btn-sm mr-2">Show</a>
  										<a href="{{ path('field_index', {'entity': entity.id}) }}" class="btn btn-success btn-sm mr-2">Fields</a>
