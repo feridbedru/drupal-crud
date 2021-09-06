@@ -48,14 +48,15 @@ label.required:after {
 								<th>#</th>
 								<th>{{ knp_pagination_sortable(fields, 'Name'|trans, 'f.name') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Type'|trans, 'f.type') }}</th>
-								{# <th>{{ knp_pagination_sortable(fields, 'Description'|trans, 'f.description') }}</th> #}
 								<th>{{ knp_pagination_sortable(fields, 'Length'|trans, 'f.length') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Validation'|trans, 'f.validation') }}</th>
 								<th>{{ knp_pagination_sortable(fields, 'Required'|trans, 'f.is_nullable') }}</th>
-								<th>{{ knp_pagination_sortable(fields, 'form'|trans, 'f.is_on_form') }}</th>
-								<th>{{ knp_pagination_sortable(fields, 'index'|trans, 'f.is_on_index') }}</th>
-								<th>{{ knp_pagination_sortable(fields, 'filter'|trans, 'f.is_on_filter') }}</th>
-								<th>{{ knp_pagination_sortable(fields, 'show'|trans, 'f.is_on_show') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'Form'|trans, 'f.is_on_form') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'Index'|trans, 'f.is_on_index') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'Filter'|trans, 'f.is_on_filter') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'Show'|trans, 'f.is_on_show') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'Search'|trans, 'f.is_searchable') }}</th>
+								<th>{{ knp_pagination_sortable(fields, 'Slug'|trans, 'f.is_sluggable') }}</th>
 								<th>{% trans %}Actions{% endtrans %}</th>
 							</tr>
 						</thead>
@@ -106,6 +107,8 @@ label.required:after {
 									<td>{{ field.isOnIndex ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnFilter ? 'Yes' : 'No' }}</td>
 									<td>{{ field.isOnShow ? 'Yes' : 'No' }}</td>
+									<td>{{ field.isSearchable ? 'Yes' : 'No' }}</td>
+									<td>{{ field.isSluggable ? 'Yes' : 'No' }}</td>
 									<td>
 										<form class="d-inline" method="post">
 											<input type="hidden" name="edit" value="{{field.id}}">

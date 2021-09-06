@@ -88,6 +88,16 @@ class Field
      */
     private $is_on_filter;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $is_sluggable;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $is_searchable;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -262,6 +272,30 @@ class Field
     public function setIsOnFilter(bool $is_on_filter): self
     {
         $this->is_on_filter = $is_on_filter;
+
+        return $this;
+    }
+
+    public function getIsSluggable(): ?bool
+    {
+        return $this->is_sluggable;
+    }
+
+    public function setIsSluggable(bool $is_sluggable): self
+    {
+        $this->is_sluggable = $is_sluggable;
+
+        return $this;
+    }
+
+    public function getIsSearchable(): ?bool
+    {
+        return $this->is_searchable;
+    }
+
+    public function setIsSearchable(bool $is_searchable): self
+    {
+        $this->is_searchable = $is_searchable;
 
         return $this;
     }

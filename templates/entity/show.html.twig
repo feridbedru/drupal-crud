@@ -36,7 +36,7 @@
     <h3 class="text-success">Fields</h3>
     <ol>
     {% for field in entity.fields %}
-        <li><b>{{ field.name }}</b>: {% if field.type == 1 %} String {% elseif field.type == 2 %} Integer {% elseif field.type == 3 %} URL {% elseif field.type == 4 %} Text {% elseif field.type == 5 %} Longtext {% elseif field.type == 6 %} Phone {% elseif field.type == 7 %} Email {% elseif field.type == 8 %} Decimal {% elseif field.type == 9 %} File {% elseif field.type == 10 %} Date {% elseif field.type == 11 %} Boolean {% elseif field.type == 12 %} Relation {% elseif field.type == 13 %} DateTime {% else %} Unknown {% endif %}</li>
+        <li><b>{{ field.name }}</b>: {% if field.type == 1 %} String {% elseif field.type == 2 %} Integer {% elseif field.type == 3 %} URL {% elseif field.type == 4 %} Text {% elseif field.type == 5 %} Longtext {% elseif field.type == 6 %} Phone {% elseif field.type == 7 %} Email {% elseif field.type == 8 %} Decimal {% elseif field.type == 9 %} File {% elseif field.type == 10 %} Date {% elseif field.type == 11 %} Boolean {% elseif field.type == 12 %} Relation {% elseif field.type == 13 %} DateTime {% else %} Unknown {% endif %}, {{ field.isNullable ? 'NULL':'NOT NULL'}}</li>
     {% endfor %}
     </ol>
     </div>
@@ -695,7 +695,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Drupal\{{ entity.namespace }}\Controller\LogController;
+use Drupal\{{ entity.namespace }}\Controller\UtilityController;
 {% set file = 0 %}
 {% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
 
@@ -811,6 +811,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         $file = $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}');
 {% endif %}
 {% endfor %}
+        $util = new UtilityController();
+        $slug = $util->slugify('component', $form_state->getValue('{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}'));
         $data = array(
 {% for field in fields %}
 {% if field.type == 9 %}
@@ -974,6 +976,80 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
 {% endfor %}
     PRIMARY KEY `id`(`id`)
 )ENGINE = INNODB DEFAULT CHARSET = UTF8MB4;
+</code>
+</pre>
+      </div>
+    </div>
+    </div>
+  </div>
+
+
+    <div class="card">
+    <div class="card-header" id="headingeleven">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseeleven" aria-expanded="false" aria-controls="collapseeleven">
+          Search </button>
+          <span class="text-success">Custom Search Code</span>
+      </h5>
+    </div>
+    <div id="collapseeleven" class="collapse" aria-labelledby="headingeleven" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code  class="language-php">
+/************************** {{ entity.singularName| lower }} start ****************************/
+    $query = $conn->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+    $orGroup1 = $query->andConditionGroup()
+        ->condition('active', 1)
+        ->condition('language', $languageCode);
+
+    $orGroup2 = $query->orConditionGroup()
+{% for field in fields %}
+{% if field.isSearchable == 1 %}
+        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $conn->escapeLike($key) . "%", 'like') {% if loop.last %};{% endif %}<br>
+{% endif %}
+{% endfor %}
+
+    $query->condition($orGroup1);
+    $query->condition($orGroup2);
+    $query->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+
+    $datas = $query->execute()->fetchAll();
+    if (!$datas) {
+        $query = $conn->select('program', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $orGroup1 = $query->andConditionGroup()
+            ->condition('active', 1)
+            ->condition('language', 'en');
+
+        $orGroup2 = $query->orConditionGroup()
+{% for field in fields %}
+{% if field.isSearchable == 1 %}
+        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $conn->escapeLike($key) . "%", 'like') <br>
+{% endif %}
+{% endfor %}
+
+        $query->condition($orGroup1);
+        $query->condition($orGroup2);
+        $query->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $datas = $query->execute()->fetchAll();
+    }
+
+    foreach ($datas as $data) {
+        $id = $data->id;
+        $name = $data->name;
+        $search_body = $this->getSubString($data->description);
+        $search_body = $this->highlight($key, $search_body);
+        $name = $this->highlight($key, $name);
+        $html .= '&lt;li>
+                    &lt;div class="post-info">
+                        &lt;a href="'.Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.view', ['id' => $data->id], []).'">'.$name.'&lt;/a>
+                        &lt;div class="post-meta">
+                            &lt;span class="text-dark text-uppercase font-weight-semibold">{{ entity.singularName| lower }}&lt;/span>
+                            &lt;p>' . $search_body . ' &lt;/p> 
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/li>';
+    }
+/************************** {{ entity.singularName| lower }} end ****************************/
 </code>
 </pre>
       </div>

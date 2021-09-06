@@ -42,6 +42,8 @@ class FieldType extends AbstractType
             ->add('is_on_index')
             ->add('is_on_show')
             ->add('is_on_filter')
+            ->add('is_searchable')
+            ->add('is_sluggable')
             ->add('relation_entity')
             ->add('relation_field')
         ;
