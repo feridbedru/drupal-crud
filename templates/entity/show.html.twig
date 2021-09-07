@@ -7,8 +7,8 @@
 
 {% block body %}
 <script src="{{asset('assets/prism.js')}}"></script>
-<a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a>
-<h1 class="mt-5">Entity</h1>
+<a href="{{ path('entity_index') }}" class="btn btn-primary mr-2 mb-2">Back</a>
+<h1 class="mt-2 d-inline mb-2">Entity</h1>
 <div class="row">
 <div class="col-md-3">
     <table class="table">
@@ -68,7 +68,7 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }} edit:
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} delete:
-    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}" 
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}"
 </code>
 </pre>
       </div>
@@ -128,6 +128,16 @@
   requirements:
     _access: "TRUE"
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"
+
+{% if entity.hasPublicPage == 1 %}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.view:
+  path: "/{{ entity.singularName|replace({' ': '_'}) |lower }}/{slug}/view"
+  defaults:
+    _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::view'
+    _title: "View {{ entity.singularName| title }}"
+  requirements:
+    _permission: "access content"
+{% endif %}
 </code>
 </pre>
       </div>
@@ -224,6 +234,18 @@
                 'default' => '',
                 'not null' => TRUE,
             ),
+            'active' => array(
+                'type' => 'tinyint',
+                'mysql_type' => 'smallint',
+                'not null' => FALSE,
+                'default' => 1,
+            ),
+            'language' => array(
+                'type' => 'varchar',
+                'length' => 5,
+                'not null' => TRUE,
+                'default' => '',
+            ),
         ),
         'primary key' => array(
             'id',
@@ -295,6 +317,58 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
         ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'];
 {% endif %}
 {% endfor %}
+        $active = $data['active'] ? "Yes" : "No";
+        $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
+        $html = '
+{% for field in fields %}
+{% if field.type == 12 %}
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '&lt;/p>
+{% else %}
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
+{% endif %}
+{% endfor %}
+        &lt;p>&lt;b>' . t('Active') . ': &lt;/b> ' . $active . '&lt;/p>';
+        $html .= '&lt;br>&lt;a href="' . $back . '" class="button button--primary">' . t('Back') . '&lt;/a>';
+
+        return [
+            '#type' => 'markup',
+            '#markup' => $html
+        ];
+    }
+
+{% if entity.hasPublicPage == 1 %}
+    /**
+     * @return array
+     */
+    public function view($slug)
+    {
+        $con = Database::getConnection();
+        $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('slug', $slug)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $data = $query->execute()->fetchAssoc();
+{% for field in fields %}
+{% if field.type == 11 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No";
+{% elseif field.type == 9 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = '';
+        $file = File::load($data['{{ field.name|replace({' ': '_'}) | lower  }}']);
+        if ($file)
+            ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
+{% elseif field.type == 12 %}
+        ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';<br>
+        ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data['{{ field.name|replace({' ': '_'}) |lower}}'];<br>
+        if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
+            $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+                ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
+                ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}');
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+        }
+{% else %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'];
+{% endif %}
+{% endfor %}
         $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
         $html = '
 {% for field in fields %}
@@ -312,6 +386,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
             '#markup' => $html
         ];
     }
+{% endif %}
 }
 </code>
 </pre>      
@@ -410,8 +485,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
      */
     public function submitForm(array &$form, FormStateInterface $form_state)
     {
-        $conn = Database::getConnection();
-        $qry = $conn->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+        $con = Database::getConnection();
+        $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
             ->condition('id', $this->id)
             ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
         $data = $qry->execute()->fetchAssoc();
@@ -726,12 +801,12 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
      */
     public function buildForm(array $form, FormStateInterface $form_state, $id = NULL)
     {
-        $conn = Database::getConnection();
+        $con = Database::getConnection();
         $data = array();
         $this->id = $id;
 
         if (isset($id)) {
-            $query = $conn->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
                 ->condition('id', $id)
                 ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
             $data = $query->execute()->fetchAssoc();
@@ -747,6 +822,15 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}}[$value->id] = $value->{{ field.relationField.name |replace({' ': '_'}) |lower}};
         }
 {% endif %}
+
+        $form['language'] = [
+            '#type' => 'select',
+            '#title' => $this->t('Language'),
+            '#options' => $language_list,
+            '#wrapper_attributes' => ['class' => 'col-md-2 col-xs-12'],
+            '#attributes' => array('class' => array('form-control'),'onchange'=>'dochange(this)'),
+            '#default_value' => $selectedLangCode,
+        ];
 
         $form['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#title' => $this->t('{{ field.name | title  }}'),
@@ -804,6 +888,13 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         ];
 {% endfor %}
 
+        $form['active'] = [
+            '#type' => 'checkbox',
+            '#title' => $this->t('Active'),
+            '#default_value' => (isset($data['active'])) ? $data['active'] : '',
+            '#attributes' => ['class' => 'mt-4 active-checkbox-data-class'],
+        ];
+
         $form['submit'] = [
             '#type' => 'submit',
             '#value' => $this->t('Save'),
@@ -811,6 +902,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         ];
 
         $form['#attached']['library'][] = '{{ entity.namespace}}/bootstrap';
+        $form['#attached']['library'][] = '{{ entity.namespace}}/filter_language';
+
         return $form;
     }
 
@@ -844,7 +937,9 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'),
 {% endif %}
 {% endfor %}
-            'slug' => $slug
+            'slug' => $slug,
+            'active' => $form_state->getValue('active'),
+            'language' => $form_state->getValue('language'),
         );
 {% for field in fields %}
 {% if field.type == 9 %}
@@ -1009,6 +1104,8 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
 {% for field in fields %}
     `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
 {% endfor %}
+    `slug` VARCHAR(255) NOT NULL,
+    `active` tinyint(1),
     PRIMARY KEY `id`(`id`)
 )ENGINE = INNODB DEFAULT CHARSET = UTF8MB4;
 </code>
@@ -1032,7 +1129,7 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
 <pre class="line-numbers">
 <code  class="language-php">
 /************************** {{ entity.singularName| lower }} start ****************************/
-    $query = $conn->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+    $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
     $orGroup1 = $query->andConditionGroup()
         ->condition('active', 1)
         ->condition('language', $languageCode);
@@ -1040,7 +1137,7 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
     $orGroup2 = $query->orConditionGroup()
 {% for field in fields %}
 {% if field.isSearchable == 1 %}
-        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $conn->escapeLike($key) . "%", 'like') {% if loop.last %};{% endif %}<br>
+        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $con->escapeLike($key) . "%", 'like') {% if loop.last %};{% endif %}<br>
 {% endif %}
 {% endfor %}
 
@@ -1050,7 +1147,7 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
 
     $datas = $query->execute()->fetchAll();
     if (!$datas) {
-        $query = $conn->select('program', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $query = $con->select('program', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
         $orGroup1 = $query->andConditionGroup()
             ->condition('active', 1)
             ->condition('language', 'en');
@@ -1058,7 +1155,7 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
         $orGroup2 = $query->orConditionGroup()
 {% for field in fields %}
 {% if field.isSearchable == 1 %}
-        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $conn->escapeLike($key) . "%", 'like') <br>
+        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $con->escapeLike($key) . "%", 'like') <br>
 {% endif %}
 {% endfor %}
 
