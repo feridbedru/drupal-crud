@@ -106,4 +106,18 @@ class EntityController extends AbstractController
         }
         return new Response(json_encode($fields_list));
     }
+
+    #[Route('/{entity}/project', name: 'project_append', methods: ['GET', 'POST'])]
+    public function project(Entity $entity,EntityRepository $entityRepository): Response
+    {
+        $em=$this->getDoctrine()->getManager();
+        $project = $entity->getNamespace();
+        $entities = $entityRepository->findBy(['namespace' => $project]);
+
+        return $this->render('entity/append.html.twig', [
+            'entities' => $entities,
+            'fields' => $entity->getFields(),
+            'project' => $project,
+        ]);
+    }
 }

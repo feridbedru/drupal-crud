@@ -1,0 +1,230 @@
+{% extends 'base.html.twig' %}
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{asset('assets/prism.css')}}" media="all"/>
+{% endblock %}
+{% block title %} {{ project }}
+	Project Apend
+{% endblock %}
+{% block pagetitle %} {{ project }}{% trans %}
+	Project Append{% endtrans %} 
+{% endblock %}
+{% block body %}
+	<script src="{{asset('assets/prism.js')}}"></script>
+	<a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a>
+	<h2 class="mt-3">{{ project }} Project Append</h2>
+	<div id="accordion">
+
+		<div class="card">
+			<div class="card-header" id="headingOne">
+				<h5 class="mb-0">
+					<button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+						Permissions
+					</button>
+					append to
+					<span class="text-success">{{ project }}.permissions.yml</span>
+				</h5>
+			</div>
+
+			<div id="collapseOne" class="collapse " aria-labelledby="headingOne" data-parent="#accordion">
+				<div class="card-body">
+					<pre class="line-numbers" >
+<code class="language-yaml">
+{% for entity in entities %}
+#{{ entity.singularName|replace({' ': '_'}) |lower }}
+{{ entity.singularName|replace({' ': '_'}) |lower }} list:
+  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can list {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} add:
+  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can add {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} show:
+  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can show {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} edit:
+  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} delete:
+  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}"
+
+{% endfor %}
+						</code>
+					</pre>
+				</div>
+			</div>
+		</div>
+
+{# routing section #}
+  <div class="card">
+    <div class="card-header" id="headingTwo">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+    Routing
+    </button>
+    append to <span class="text-success">{{ project }}.routing.yml</span>
+      </h5>
+    </div>
+    <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-yaml">
+{% for entity in entities %}
+#{{ entity.singularName|replace({' ': '_'}) |lower }}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.index:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/index"
+  defaults:
+    _title: "List {{ entity.singularName| title }}"
+    _form: '\Drupal\{{ entity.namespace }}\FilterForm\{{ entity.singularName| title | replace({' ': ''}) }}SearchForm'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} list"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.add:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/add"
+  defaults:
+    _title: "Create New {{ entity.singularName| title }}"
+    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} add"
+    
+{{ entity.singularName|replace({' ': '_'}) |lower }}.show:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/show"
+  defaults:
+    _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::show'
+    _title: "Show {{ entity.singularName| title }}"
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} show"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.edit:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/edit"
+  defaults:
+    _title: "Edit {{ entity.singularName|title }}"
+    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
+  defaults:
+    _form: '\Drupal\{{ entity.namespace }}\DeleteForm\{{ entity.singularName| title |  replace({' ': ''}) }}DeleteForm'
+    _title: "Delete {{ entity.singularName| title }}"
+  requirements:
+    _access: "TRUE"
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"
+
+{% endfor %}
+</code>
+</pre>
+      </div>
+    </div>
+  </div>
+
+{# menu links #}
+<div class="card">
+    <div class="card-header" id="headingThree">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+    Menu Links
+    </button>
+    append to <span class="text-success">{{ project }}.links.menu.yml</span>
+      </h5>
+    </div>
+    <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-yaml">
+{% for entity in entities %}
+{{ entity.namespace| lower }}.{{ entity.singularName|lower }}:
+  title: "{{ entity.singularName|title }}"
+  description: "Configure {{ entity.singularName|title }}"
+  route_name: {{ entity.singularName| replace({' ': '_'}) | lower }}.index
+  menu_name: {{ entity.namespace| lower }}
+
+{% endfor %}
+</code>
+</pre>
+      </div>
+    </div>
+  </div>
+
+
+<div class="card">
+    <div class="card-header" id="headingFour">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+           Database install snippet        
+           </button>
+           append to <span class="text-success">{{ project }}.install</span>
+      </h5>
+    </div>
+    <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-php">
+{% for entity in entities %}
+//{{ entity.pluralName| title }}
+    $schema['{{ entity.pluralName|replace({' ': '_'}) |lower }}'] = array(
+        'fields' => array(
+            'id' => array(
+                'type' => 'serial',
+                'unsigned' => TRUE,
+                'not null' => TRUE,
+            ),
+            {% for field in fields %}
+'{{ field.name|replace({' ': '_'}) | lower  }}' => array(
+    {% if field.type == 1 %}
+            'type' => 'varchar',
+                'length' => {{ field.length ? field.length : 255 }},
+                'default' => '',
+    {% elseif field.type == 2 %}
+            'type' => 'int',
+                'unsigned' => TRUE,
+    {% elseif (field.type == 3) or (field.type == 7) %}
+            'type' => 'varchar',
+                'length' => {{ field.length ? field.length : 255 }},
+                'default' => '',
+    {% elseif field.type == 4 %}
+            'type' => 'text',
+    {% elseif field.type == 5 %}
+            'type' => 'longtext',
+    {% elseif field.type == 6 %}
+            'type' => 'varchar',
+                'length' => {{ field.length ? field.length : 15 }},
+    {% elseif field.type == 8 %}
+            'type' => 'float',
+    {% elseif field.type == 9 %}
+            'type' => 'int',
+                'length' => 20,
+    {% elseif field.type == 10 %}
+            'type' => 'date',
+                'mysql_type' => 'date',
+    {% elseif field.type == 11 %}
+            'type' => 'tinyint',
+                'mysql_type' => 'smallint',
+                'default' => 1,
+    {% elseif field.type == 12 %}
+            'type' => 'int',
+    {% elseif field.type == 13 %}
+            'type' => 'date',
+                'mysql_type' => 'date',
+    {% endif %}
+            'not null' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
+            ),
+            {% endfor %}
+'slug' => array(
+                'type' => 'varchar',
+                'length' => 255,
+                'default' => '',
+                'not null' => TRUE,
+            ),
+        ),
+        'primary key' => array(
+            'id',
+        ),
+    );
+	
+{% endfor %}
+    
+</code>
+</pre>     
+    </div>
+    </div>
+  </div>
+
+
+	</div>
+{% endblock %}

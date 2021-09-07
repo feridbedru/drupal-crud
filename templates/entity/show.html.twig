@@ -2,14 +2,12 @@
 {% block stylesheets %}
 <link rel="stylesheet" href="{{asset('assets/prism.css')}}" media="all"/>
 {% endblock %}
-{% block javascripts %}
 
-{% endblock %}
 {% block title %}Entity{% endblock %}
 
 {% block body %}
 <script src="{{asset('assets/prism.js')}}"></script>
-    <a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a>
+<a href="{{ path('entity_index') }}" class="btn btn-primary mr-2">Back</a>
 <h1 class="mt-5">Entity</h1>
 <div class="row">
 <div class="col-md-3">
@@ -445,13 +443,15 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
       <h5 class="mb-0">
         <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
           FilterForm 
+
            </button>
            <span class="text-success">{{ entity.singularName | title | replace({' ': ''}) }}SearchForm.php</span>
       </h5>
     </div>
     <div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordion">
       <div class="card-body">
-<pre class="line-numbers">
+
+<pre class="line-numbers"  >
 <code  class="language-php">&lt;?php
 
 namespace Drupal\{{ entity.namespace }}\FilterForm;

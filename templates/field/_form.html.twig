@@ -1,14 +1,14 @@
 {{ form_start(form) }}
-<div class="form-group">
-	<label>{{ form_label(form.name) }}</label> {{ form_widget(form.name,{'attr':{'class':'form-control'}}) }}
-	<div class="help-block with-errors"></div>
-</div>
 <div class="row">
-	<div class="form-group col-md-6">
+	<div class="form-group col-md-4">
+		<label>{{ form_label(form.name) }}</label> {{ form_widget(form.name,{'attr':{'class':'form-control'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+	<div class="form-group col-md-4">
 		<label>{{ form_label(form.type) }}</label> {{ form_widget(form.type,{'attr':{'class':'form-control', 'id': 'fieldtype'}}) }}
 		<div class="help-block with-errors"></div>
 	</div>
-	<div class="form-group col-md-6">
+	<div class="form-group col-md-4">
 		<label>{{ form_label(form.length) }}</label> {{ form_widget(form.length,{'attr':{'class':'form-control'}}) }}
 		<div class="help-block with-errors"></div>
 	</div>
@@ -23,42 +23,40 @@
 		<div class="help-block with-errors"></div>
 	</div>
 </div>
-<div class="form-group">
-	<label>{{ form_label(form.description) }}</label> {{ form_widget(form.description,{'attr':{'class':'form-control'}}) }}
-	<div class="help-block with-errors"></div>
-</div>
 <div class="row">
-	<div class="form-group col-md-6">
+	<div class="form-group col-md-4">
+		<label>{{ form_label(form.description) }}</label> {{ form_widget(form.description,{'attr':{'class':'form-control'}}) }}
+		<div class="help-block with-errors"></div>
+	</div>
+	<div class="form-group col-md-4">
 		<label>{{ form_label(form.default_value) }}</label> {{ form_widget(form.default_value,{'attr':{'class':'form-control'}}) }}
 		<div class="help-block with-errors"></div>
 	</div>
-	<div class="form-group col-md-6">
+	<div class="form-group col-md-4">
 		<label>{{ form_label(form.validation) }}</label> {{ form_widget(form.validation,{'attr':{'class':'form-control'}}) }}
 		<div class="help-block with-errors"></div>
 	</div>
 </div>
 <div class="row">
-	<div class="form-group col-md-4">
-		<label>{{ form_label(form.is_on_form) }}</label> {{ form_widget(form.is_on_form) }}
+	<div class="form-group col-md-1">
+		<label>{{ form_label(form.is_on_form, 'Form') }}</label> {{ form_widget(form.is_on_form) }}
 	</div>
-	<div class="form-group col-md-4">
+	<div class="form-group col-md-1">
 		<label>{{ form_label(form.is_on_show) }}</label> {{ form_widget(form.is_on_show) }}
 	</div>
-	<div class="form-group col-md-4">
+	<div class="form-group col-md-1">
 		<label>{{ form_label(form.is_searchable) }}</label> {{ form_widget(form.is_searchable) }}
 	</div>
-</div>
-<div class="row">
-	<div class="form-group col-md-3">
+	<div class="form-group col-md-1">
 		<label>{{ form_label(form.is_nullable) }}</label> {{ form_widget(form.is_nullable) }}
 	</div>
-	<div class="form-group col-md-3">
+	<div class="form-group col-md-1">
 		<label>{{ form_label(form.is_on_index) }}</label> {{ form_widget(form.is_on_index) }}
 	</div>
-	<div class="form-group col-md-3">
+	<div class="form-group col-md-1">
 		<label>{{ form_label(form.is_on_filter) }}</label> {{ form_widget(form.is_on_filter) }}
 	</div>
-	<div class="form-group col-md-3">
+	<div class="form-group col-md-1">
 		<label>{{ form_label(form.is_sluggable) }}</label> {{ form_widget(form.is_sluggable) }}
 	</div>
 </div>

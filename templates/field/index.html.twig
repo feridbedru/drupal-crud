@@ -14,10 +14,10 @@ label.required:after {
 }
 </style>
 <a class="btn btn-primary" href="{{ path('entity_index')}}">Back to Entity</a>
-	<h2 class="mt-3">{{ entity.singularName|title }} Fields</h2>
+	<h2 class="mt-3 d-inline">{{ entity.singularName|title }} Fields</h2>
 	<div class="row">
 		<div
-			class="col-md-4">
+			class="col-md-12">
 			<div class="card card-info">
 				<div class="card-header">
 					<h5 class="card-title">
@@ -35,7 +35,7 @@ label.required:after {
 				</div>
 			</div>
 		</div>
-		<div class="col-md-8">
+		<div class="col-md-12">
 			<div class="card card-info">
 				<div class="card-header">
 					<h5 class="card-title">{% trans %}
