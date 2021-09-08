@@ -101,3 +101,10 @@ label.required:after {
 		</div>
 	</div>
 {% endblock %}
+{% block javascripts %}
+<script>
+$( document ).ready(function() {
+  $("#entity_namespace").val("ministry");
+});
+</script>
+{% endblock %}

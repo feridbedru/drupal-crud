@@ -130,6 +130,14 @@
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"
 
 {% if entity.hasPublicPage == 1 %}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.list:
+  path: "/{{ entity.singularName|replace({' ': '_'}) |lower }}/"
+  defaults:
+    _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::list'
+    _title: "{{ entity.pluralName| title }}"
+  requirements:
+    _permission: "access content"
+
 {{ entity.singularName|replace({' ': '_'}) |lower }}.view:
   path: "/{{ entity.singularName|replace({' ': '_'}) |lower }}/{slug}/view"
   defaults:
@@ -311,14 +319,16 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
             ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
             ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
         }
+{% elseif field.type == 11 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" ;
 {% endif %}
 {% endfor %}
-        $active = data['active'] ? "Yes" : "No";
+        $active = $data['active'] ? "Yes" : "No";
         $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
         $html = '
 {% for field in fields %}
 {% if field.type == 11 %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" . '&lt;/p>
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
 {% elseif field.type == 12 %}
         &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '&lt;/p>
 {% elseif field.type == 9 %}
@@ -337,6 +347,17 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
     }
 
 {% if entity.hasPublicPage == 1 %}
+    /**
+    * @return array
+    */
+    public function list()
+    {
+        return [
+        '#type' => 'markup',
+        '#markup' => " "
+        ];
+    }
+
     /**
      * @return array
      */
@@ -363,13 +384,15 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
             ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
             ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
         }
+{% elseif field.type == 11 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" ;
 {% endif %}
 {% endfor %}
         $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
         $html = '
 {% for field in fields %}
 {% if field.type == 11 %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" . '&lt;/p>
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
 {% elseif field.type == 12 %}
         &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '&lt;/p>
 {% elseif field.type == 9 %}
@@ -930,7 +953,6 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         ];
 
         $form['#attached']['library'][] = '{{ entity.namespace}}/bootstrap';
-        $form['#attached']['library'][] = '{{ entity.namespace}}/filter_language';
 
         $form['#cache']['max-age'] = 0;
 
@@ -945,8 +967,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
     {
 {% for field in fields %}
 {% if field.isNullable == 0 %}
-        if (!$form_state->getValue('{{field.name}}') || empty($form_state->getValue('{{field.name}}'))) {
-            $form_state->setErrorByName('{{field.name}}', $this->t('{{field.name}} is required.'));
+        if (!$form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}') || empty($form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'))) {
+            $form_state->setErrorByName('{{ field.name|replace({' ': '_'}) | lower  }}', $this->t('{{field.name}} is required.'));
         }
 
 {% endif %}
@@ -1099,6 +1121,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
                 ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
                 ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
             }
+{% elseif field.type == 11 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" ;
 {% endif %}{% endfor %}
             $html .= '
             {% for field in fields %}
@@ -1107,7 +1131,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
 {% elseif field.type == 9 %}
         &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
 {% elseif field.type == 11 %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data->{{ field.name|replace({' ': '_'}) | lower  }} ? "Yes" : "No" . '&lt;/p>
+        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data->{{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
 {% else %}
         &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data->{{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
 {% endif %}
@@ -1150,7 +1174,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
 CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
     `id` INT NOT NULL AUTO_INCREMENT,
 {% for field in fields %}
-    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% elseif field.type == 12 %}INTEGER{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
+    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% elseif field.type == 12 %}INTEGER{% elseif field.type == 13 %}DATETIME{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
 {% endfor %}
     `slug` VARCHAR(255) NOT NULL,
     `active` tinyint(1),

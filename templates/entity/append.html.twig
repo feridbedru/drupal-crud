@@ -107,6 +107,14 @@
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"
 
 {% if entity.hasPublicPage == 1 %}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.list:
+  path: "/{{ entity.singularName|replace({' ': '_'}) |lower }}/"
+  defaults:
+    _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::list'
+    _title: "{{ entity.pluralName| title }}"
+  requirements:
+    _permission: "access content"
+
 {{ entity.singularName|replace({' ': '_'}) |lower }}.view:
   path: "/{{ entity.singularName|replace({' ': '_'}) |lower }}/{slug}/view"
   defaults:

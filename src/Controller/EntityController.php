@@ -34,7 +34,7 @@ class EntityController extends AbstractController
 
             $queryBuilder = $entityRepository->findAll();
             // $queryBuilder = $entityRepository->findBy([], ['id' => 'DESC']);
-            $data = $paginator->paginate($queryBuilder, $request->query->getInt('page',1), 10 );
+            $data = $paginator->paginate($queryBuilder, $request->query->getInt('page',1), 30 );
 
             return $this->render('entity/index.html.twig', [
                 'entities' => $data,
