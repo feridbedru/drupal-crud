@@ -313,6 +313,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
         }
 {% endif %}
 {% endfor %}
+        $active = data['active'] ? "Yes" : "No";
         $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
         $html = '
 {% for field in fields %}
@@ -326,12 +327,12 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
         &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data['{{ field.name|replace({' ': '_'}) | lower  }}'] . '&lt;/p>
 {% endif %}
 {% endfor %}
-        &lt;p>&lt;b>' . t('Active') . ': &lt;/b> ' . $data['active'] ? "Yes" : "No" . '&lt;/p>';
+        &lt;p>&lt;b>' . t('Active') . ': &lt;/b> ' . $active . '&lt;/p>';
         $html .= '&lt;br>&lt;a href="' . $back . '" class="button button--primary">' . t('Back') . '&lt;/a>';
 
         return [
-            '#type' => 'markup',
-            '#markup' => $html
+            '#type' => 'inline_template',
+            '#template' => $html
         ];
     }
 
@@ -412,7 +413,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
-use Drupal\portal\Controller\LogController;
+use Drupal\portal\Controller\UtilityController;
 
 /**
  * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
@@ -496,11 +497,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
             ->execute();
             
         if ($query) {
-            $log = new LogController();
-            $target = substr($this->getFormId(), 0, -12);
-            $action = "DELETE";
-            $id = $this->id;
-            $log->setLog($action, $target, $id, $data);
+            $util = new UtilityController();
+            $util->logger("DELETE", "{{ entity.singularName | capitalize}}", $this->id, $data);
         }
 
         \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| lower }}.');
@@ -535,6 +533,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\Core\Link;
+use Drupal\{{ entity.namespace }}\Controller\UtilityController;
 
 class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends FormBase
 {
@@ -559,7 +558,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
             '{{ field.name|replace({' ': '_'}) | lower  }}' => $this->t('{{ field.name | title  }}'), 
 {% endif %}{% endfor %}
             [
-                'operations' => $this->t('Operations'),
+                'data' => $this->t('Operations'),
                 'colspan' => 3,
             ],
         );
@@ -615,12 +614,12 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         $selectedLangCode = $util->getLanguage()['selectedLanguage'];
         $language_list = $util->getLanguage()['languageList'];
 
-        $form['language'] = [
+        $form['filters']['language'] = [
             '#type' => 'select',
             '#title' => $this->t('Language'),
             '#options' => $language_list,
             '#wrapper_attributes' => ['class' => 'col-md-2 col-xs-12'],
-            '#attributes' => array('class' => array('form-control'),'onchange'=>'dochange(this)'),
+            '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
         ];
 
@@ -841,7 +840,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#title' => $this->t('Language'),
             '#options' => $language_list,
             '#wrapper_attributes' => ['class' => 'col-md-2 col-xs-12'],
-            '#attributes' => array('class' => array('form-control'),'onchange'=>'dochange(this)'),
+            '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
         ];
 
@@ -904,12 +903,13 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
     {% elseif field.type == 12 and field.isOnForm == 1 %}
             '#type' => 'select',
             '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
+            '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
     {% elseif field.type == 13 and field.isOnForm == 1 %}
         '#type' => 'datetime',
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
 {% endif %}
         '#attributes' => array('class' => array('form-control')),
-            '#wrapper_attributes' => ['class' => 'col-md-4 col-xs-12']
+            '#wrapper_attributes' => ['class' => 'col-md-4 col-xs-12'],
             '#prefix' => '&lt;div class="form-group">',
             '#suffix' => '&lt;/div>',
         ];
@@ -920,7 +920,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#type' => 'checkbox',
             '#title' => $this->t('Active'),
             '#default_value' => (isset($data['active'])) ? $data['active'] : '',
-            '#attributes' => ['class' => 'mt-4 active-checkbox-data-class'],
+            '#attributes' => ['class' => ['mt-4 active-checkbox-data-class']],
         ];
 
         $form['submit'] = [
@@ -933,7 +933,6 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         $form['#attached']['library'][] = '{{ entity.namespace}}/filter_language';
 
         $form['#cache']['max-age'] = 0;
-        $form['#attributes']['novalidate'] = 'novalidate';
 
         return $form;
     }
@@ -991,7 +990,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 {% endfor %}
 
         $status = '';
-        $this->id = $id;
+        $id = $this->id;
         if (isset($id)) {
             $con = Database::getConnection();
             $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
@@ -1151,10 +1150,11 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
 CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
     `id` INT NOT NULL AUTO_INCREMENT,
 {% for field in fields %}
-    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
+    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% elseif field.type == 12 %}INTEGER{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
 {% endfor %}
     `slug` VARCHAR(255) NOT NULL,
     `active` tinyint(1),
+    `language` VARCHAR(5) NOT NULL,
     PRIMARY KEY `id`(`id`)
 )ENGINE = INNODB DEFAULT CHARSET = UTF8MB4;
 </code>
