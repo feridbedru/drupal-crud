@@ -182,7 +182,7 @@
                 'unsigned' => TRUE,
                 'not null' => TRUE,
             ),
-            {% for field in fields %}
+            {% for field in entity.fields %}
 '{{ field.name|replace({' ': '_'}) | lower  }}' => array(
     {% if field.type == 1 %}
             'type' => 'varchar',

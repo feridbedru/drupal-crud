@@ -117,7 +117,6 @@ class EntityController extends AbstractController
 
         return $this->render('entity/append.html.twig', [
             'entities' => $entities,
-            'fields' => $entity->getFields(),
             'project' => $project,
         ]);
     }
