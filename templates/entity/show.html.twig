@@ -606,10 +606,9 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% for field in fields %}
 {% if field.isOnFilter == 1 and field.type != 12 %}
         $form['filters']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
-            '#type' => '{% if field.type == 1 %} textfield {% elseif field.type == 2 %} number {% elseif field.type == 3 %} url {% elseif field.type == 6 %} tel {% elseif field.type == 7 %} email {% elseif field.type == 8 %} number {% elseif field.type == 10 %} date {% elseif field.type == 11 %} checkbox {% elseif field.type == 13 %} datetime {% else %} textfield {% endif %}',
+            '#type' => '{% if field.type == 1 %}textfield{% elseif field.type == 2 %}number{% elseif field.type == 3 %}url{% elseif field.type == 6 %}tel{% elseif field.type == 7 %}email{% elseif field.type == 8 %}number{% elseif field.type == 10 %}date{% elseif field.type == 11 %}checkbox{% elseif field.type == 13 %}datetime{% else %}textfield{% endif %}',
             '#title' => $this->t('{{ field.name | title  }}'),
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
-            '#wrapper_attributes' => ['class' => 'col-md-3 col-xs-12']
         ];
 
 {% elseif field.isOnFilter == 1 and field.type == 12  %}
@@ -666,7 +665,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% endif %}
 {% endfor %}
         $language = "en";
-        $resources = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}{% if loop.first == false  %},{% endif %} ${{ field.name|replace({' ': '_'}) | lower  }}{% endif %}{% endfor %}, $language);
+        $resources = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}${{ field.name|replace({' ': '_'}) | lower  }}, {% endif %}{% endfor %}$language);
 
         // render table
         $form['table'] = [
@@ -699,7 +698,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     {
     }
 
-    private function getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}{% if loop.first == false  %},{% endif %} ${{ field.name|replace({' ': '_'}) | lower  }}{% endif %}{% endfor %}, $language)
+    private function getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}${{ field.name|replace({' ': '_'}) | lower  }}, {% endif %}{% endfor %}$language)
     {
         $query = \Drupal::database()->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
             ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}', ['id'{% for field in fields %}{% if field.isOnIndex == 1 or field.isOnFilter == 1 %}, '{{ field.name|replace({' ': '_'}) | lower }}'{% endif %}{% endfor %}, 'language'])
@@ -786,7 +785,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% endfor %}
         $language = $field["language"];
         $rows = [];
-        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}{% if loop.first == false  %},{% endif %} ${{ field.name|replace({' ': '_'}) | lower  }}{% endif %}{% endfor %}, $language);
+        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}${{ field.name|replace({' ': '_'}) | lower  }}, {% endif %}{% endfor %}, $language);
         $form['table']['#rows'] = $rows;
 
         return $form['table'];
@@ -862,9 +861,10 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#type' => 'select',
             '#title' => $this->t('Language'),
             '#options' => $language_list,
-            '#wrapper_attributes' => ['class' => 'col-md-2 col-xs-12'],
             '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
+            '#prefix' => '&lt;div class="form-group col-md-6">',
+            '#suffix' => '&lt;/div>',
         ];
 
 {% for field in fields %}
@@ -879,7 +879,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         }
 
 {% endif %}
-        $form['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
+        $form['group']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#title' => $this->t('{{ field.name | title  }}'),
             '#required' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
     {% if field.type == 1 and field.isOnForm == 1 %}
@@ -932,8 +932,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
 {% endif %}
         '#attributes' => array('class' => array('form-control')),
-            '#wrapper_attributes' => ['class' => 'col-md-4 col-xs-12'],
-            '#prefix' => '&lt;div class="form-group">',
+            '#prefix' => '&lt;div class="form-group col-md-4">',
             '#suffix' => '&lt;/div>',
         ];
 
@@ -943,7 +942,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#type' => 'checkbox',
             '#title' => $this->t('Active'),
             '#default_value' => (isset($data['active'])) ? $data['active'] : '',
-            '#attributes' => ['class' => ['mt-4 active-checkbox-data-class']],
+            '#attributes' => ['class' => ['mt-4 ']],
         ];
 
         $form['submit'] = [
@@ -1174,7 +1173,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
 CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
     `id` INT NOT NULL AUTO_INCREMENT,
 {% for field in fields %}
-    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(50){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(50){% elseif field.type == 7 %}VARCHAR(50){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% elseif field.type == 12 %}INTEGER{% elseif field.type == 13 %}DATETIME{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
+    `{{ field.name|replace({' ': '_'}) | lower  }}` {% if field.type == 1 %} VARCHAR(255){% elseif field.type == 2 %}INT{% elseif field.type == 3 %}VARCHAR(255){% elseif field.type == 4 %}TEXT{% elseif field.type == 5 %}LONGTEXT{% elseif field.type == 6 %}VARCHAR(100){% elseif field.type == 7 %}VARCHAR(100){% elseif field.type == 8 %}DOUBLE{% elseif field.type == 9 %}VARCHAR(255){% elseif field.type == 10 %}DATE{% elseif field.type == 11 %}BOOLEAN{% elseif field.type == 12 %}INTEGER{% elseif field.type == 13 %}DATETIME{% endif %} {{ field.isNullable ? '' : 'NOT NULL' }}, 
 {% endfor %}
     `slug` VARCHAR(255) NOT NULL,
     `active` tinyint(1),
