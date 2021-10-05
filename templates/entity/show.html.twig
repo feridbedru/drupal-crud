@@ -388,7 +388,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
         ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" ;
 {% endif %}
 {% endfor %}
-        $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
+        $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.list', [])->toString();
         $html = '
 {% for field in fields %}
 {% if field.type == 11 %}
@@ -402,7 +402,6 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Controller extends C
 {% endif %}
 {% endfor %}
         &lt;p>&lt;b>' . t('Active') . ': &lt;/b> ' . $data['active'] ? "Yes" : "No" . '&lt;/p>';
-        $html .= '&lt;br>&lt;a href="' . $back . '" class="button button--primary">' . t('Back') . '&lt;/a>';
 
         return [
             '#type' => 'markup',
@@ -436,7 +435,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
-use Drupal\portal\Controller\UtilityController;
+use Drupal\{{ entity.namespace }}\Controller\UtilityController;
 
 /**
  * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
@@ -778,14 +777,9 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     function findRows(array &$form, FormStateInterface $form_state)
     {
         $field = $form_state->getValues();
-{% for field in fields %}
-{% if field.isOnFilter == 1 %}
-        ${{ field.name|replace({' ': '_'}) | lower  }} = $field["{{ field.name|replace({' ': '_'}) | lower  }}"];
-{% endif %}
-{% endfor %}
         $language = $field["language"];
         $rows = [];
-        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}${{ field.name|replace({' ': '_'}) | lower  }}, {% endif %}{% endfor %}, $language);
+        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}$field["{{ field.name|replace({' ': '_'}) | lower  }}"], {% endif %}{% endfor %} $language);
         $form['table']['#rows'] = $rows;
 
         return $form['table'];
@@ -1061,10 +1055,6 @@ namespace Drupal\{{ entity.namespace }}\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Database\Database;
-use Drupal\Core\Url;
-{% set file = 0 %}
-{% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
-
 
 /**
  * Provides a block called "{{ entity.singularName | title }} block".
@@ -1091,57 +1081,11 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
             ->condition('active', 1)
             ->condition('language', $languageCode)
             ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
-        $datas = $query->execute()->fetchAll();
-
-        $html = '';
-
-        if (!$datas) {
-            $html = '&lt;div class="jumbotron">
-                        &lt;h1 class="display-4">No Data Found&lt;/h1>
-                        &lt;p class="lead">No data found with the specified parameter.&lt;/p>
-                    &lt;/div>';
-        }
-        
-        foreach ($datas as $data) {
-            $id = $data->id;
-{% for field in fields %}
-{% if field.type == 9 %}
-            ${{ field.name|replace({' ': '_'}) | lower  }} = '';
-            $file = File::load($data->{{ field.name|replace({' ': '_'}) | lower  }});
-            if ($file)
-                ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
-{% elseif field.type == 12 %}
-            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';<br>
-            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data['{{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}'];<br>
-            if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
-                $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
-                    ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
-                    ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}');
-                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
-                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
-            }
-{% elseif field.type == 11 %}
-        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" ;
-{% endif %}{% endfor %}
-            $html .= '
-            {% for field in fields %}
-{% if field.type == 12 %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '&lt;/p>
-{% elseif field.type == 9 %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
-{% elseif field.type == 11 %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data->{{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
-{% else %}
-        &lt;p>&lt;b>' . t('{{ field.name | title}}') . ': &lt;/b> ' . $data->{{ field.name|replace({' ': '_'}) | lower  }} . '&lt;/p>
-{% endif %}
-            {% endfor %}
-            ';
-        }
-        $html .= '';
+        ${{ entity.pluralName|replace({' ': '_'}) |lower }} = $query->execute()->fetchAll();
 
         return [
-            '#type' => 'markup',
-            '#markup' => $html,
+            '#theme' => '{{ entity.pluralName|replace({' ': '_'}) |lower }}_list',
+            '#{{ entity.pluralName|replace({' ': '_'}) |lower }}' => ${{ entity.pluralName|replace({' ': '_'}) |lower }},
         ];
     }
 
@@ -1211,7 +1155,7 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
 {% if field.isSearchable == 1 %}
         ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $con->escapeLike($key) . "%", 'like') {% if loop.last %};{% endif %}<br>
 {% endif %}
-{% endfor %}
+{% endfor %};
 
     $query->condition($orGroup1);
     $query->condition($orGroup2);
@@ -1229,7 +1173,7 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
 {% if field.isSearchable == 1 %}
         ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $con->escapeLike($key) . "%", 'like') <br>
 {% endif %}
-{% endfor %}
+{% endfor %};
 
         $query->condition($orGroup1);
         $query->condition($orGroup2);
@@ -1243,11 +1187,12 @@ CREATE TABLE {{ entity.pluralName|replace({' ': '_'}) |lower }} (
         $search_body = $this->getSubString($data->description);
         $search_body = $this->highlight($key, $search_body);
         $name = $this->highlight($key, $name);
+        $view = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.view', ['slug' => $data->slug], [])->toString();
         $html .= '&lt;li>
                     &lt;div class="post-info">
-                        &lt;a href="'.Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.view', ['id' => $data->id], []).'">'.$name.'&lt;/a>
+                        &lt;a href="'.$view.'">'.$name.'&lt;/a>
                         &lt;div class="post-meta">
-                            &lt;span class="text-dark text-uppercase font-weight-semibold">{{ entity.singularName| lower }}&lt;/span>
+                            &lt;span class="text-dark text-uppercase font-weight-semibold">{{ entity.singularName| upper }}&lt;/span>
                             &lt;p>' . $search_body . ' &lt;/p> 
                         &lt;/div>
                     &lt;/div>

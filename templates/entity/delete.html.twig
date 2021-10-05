@@ -1,0 +1,102 @@
+{% block body %}
+<?php
+
+namespace Drupal\{{ entity.namespace }}\DeleteForm;
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\ConfirmFormBase;
+use Drupal\Core\Url;
+use Drupal\Core\Database\Database;
+use Drupal\{{ entity.namespace }}\Controller\UtilityController;
+
+/**
+ * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
+ * @package Drupal\{{ entity.namespace }}\DeleteForm
+ */
+class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends ConfirmFormBase
+{
+
+    public $id;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getFormId()
+    {
+        return '{{ entity.singularName|replace({' ': '_'}) |lower }}_delete_form';
+    }
+
+    public function getQuestion()
+    {
+        return t('Delete {{ entity.singularName }}');
+    }
+
+    public function getCancelUrl()
+    {
+        return new Url('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+    }
+
+    public function getDescription()
+    {
+        return t('Do you want to delete {{ entity.singularName }} id %id ?', array('%id' => $this->id));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConfirmText()
+    {
+        return t('Delete it!');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCancelText()
+    {
+        return t('Cancel');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildForm(array $form, FormStateInterface $form_state, $id = NULL)
+    {
+        $this->id = $id;
+        return parent::buildForm($form, $form_state);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateForm(array &$form, FormStateInterface $form_state)
+    {
+        parent::validateForm($form, $form_state);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function submitForm(array &$form, FormStateInterface $form_state)
+    {
+        $con = Database::getConnection();
+        $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('id', $this->id)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $data = $qry->execute()->fetchAssoc();
+
+        $query = \Drupal::database();
+        $query->delete('{{ entity.pluralName|replace({' ': '_'}) | lower }}')
+            ->condition('id', $this->id)
+            ->execute();
+            
+        if ($query) {
+            $util = new UtilityController();
+            $util->logger("DELETE", "{{ entity.singularName | capitalize}}", $this->id, $data);
+        }
+
+        \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| lower }}.');
+        $form_state->setRedirect('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+    }
+}
+{% endblock %}

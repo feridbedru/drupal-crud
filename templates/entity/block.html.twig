@@ -1,0 +1,50 @@
+{% block body %}
+<?php
+
+namespace Drupal\{{ entity.namespace }}\Plugin\Block;
+
+use Drupal\Core\Block\BlockBase;
+use Drupal\Core\Database\Database;
+
+/**
+ * Provides a block called "{{ entity.singularName | title }} block".
+ *
+ * @Block(
+ *  id = "{{ entity.singularName|replace({' ': '_'}) |lower }}_block",
+ *  admin_label = @Translation("{{ entity.singularName | title }} block")
+ * )
+ */
+
+class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockBase
+{
+
+    /**
+     * {@inheritdoc}
+     */
+    public function build()
+    {
+        \Drupal::service('page_cache_kill_switch')->trigger();
+        $con = Database::getConnection();
+        $languageCode = \Drupal::languageManager()->getCurrentLanguage()->getId();
+
+        $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('active', 1)
+            ->condition('language', $languageCode)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        ${{ entity.pluralName|replace({' ': '_'}) |lower }} = $query->execute()->fetchAll();
+
+        return [
+            '#theme' => '{{ entity.pluralName|replace({' ': '_'}) |lower }}_list',
+            '#{{ entity.pluralName|replace({' ': '_'}) |lower }}' => ${{ entity.pluralName|replace({' ': '_'}) |lower }},
+        ];
+    }
+
+    /**
+     * @return int
+     */
+    public function getCacheMaxAge() 
+    {
+        return 1;
+    }
+}
+{% endblock %}

@@ -255,6 +255,83 @@
     </div>
   </div>
 
+<div class="card">
+    <div class="card-header" id="headingeleven">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseeleven" aria-expanded="false" aria-controls="collapseeleven">
+          Search </button>
+          <span class="text-success">Custom Search Code</span>
+      </h5>
+    </div>
+    <div id="collapseeleven" class="collapse" aria-labelledby="headingeleven" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code  class="language-php">
+{% for entity in entities %}
+/************************** {{ entity.singularName| lower }} start ****************************/
+    $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+    $orGroup1 = $query->andConditionGroup()
+        ->condition('active', 1)
+        ->condition('language', $languageCode);
+
+    $orGroup2 = $query->orConditionGroup()
+{% for field in entity.fields %}
+{% if field.isSearchable == 1 %}
+        ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $con->escapeLike($key) . "%", 'like')<br>
+{% endif %}
+{% endfor %};
+
+    $query->condition($orGroup1);
+    $query->condition($orGroup2);
+    $query->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+
+    $datas = $query->execute()->fetchAll();
+    if (!$datas) {
+        $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $orGroup1 = $query->andConditionGroup()
+            ->condition('active', 1)
+            ->condition('language', 'en');
+
+        $orGroup2 = $query->orConditionGroup()
+{% for field in entity.fields %}
+{% if field.isSearchable == 1 %}
+            ->condition('{{ field.name|replace({' ': '_'}) |lower}}', "%" . $con->escapeLike($key) . "%", 'like')<br>
+{% endif %}
+{% endfor %};
+
+        $query->condition($orGroup1);
+        $query->condition($orGroup2);
+        $query->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $datas = $query->execute()->fetchAll();
+    }
+
+    foreach ($datas as $data) {
+        $id = $data->id;
+        $name = $data->name;
+        $search_body = $this->getSubString($data->description);
+        $search_body = $this->highlight($key, $search_body);
+        $name = $this->highlight($key, $name);
+        $view = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.view', ['slug' => $data->slug], [])->toString();
+        $html .= '&lt;li>
+                    &lt;div class="post-info">
+                        &lt;a href="'.$view.'">'.$name.'&lt;/a>
+                        &lt;div class="post-meta">
+                            &lt;span class="text-dark text-uppercase font-weight-semibold">{{ entity.singularName| upper }}&lt;/span>
+                            &lt;p>' . $search_body . ' &lt;/p> 
+                        &lt;/div>
+                    &lt;/div>
+                &lt;/li>';
+    }
+/************************** {{ entity.singularName| lower }} end ****************************/ 
+{% endfor %}
+
+</code>
+</pre>
+      </div>
+    </div>
+    </div>
+  </div>
+
 
 	</div>
 {% endblock %}
