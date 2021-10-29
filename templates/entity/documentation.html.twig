@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+{% block stylesheets %}
+	<link rel="stylesheet" href="{{asset('assets/prism.css')}}" media="all"/>
+{% endblock %}
+{% block title %} {{ project }}
+	Project Apend
+{% endblock %}
+{% block pagetitle %} {{ project }}{% trans %}
+	Project Append{% endtrans %} 
+{% endblock %}
+{# {% block body %}
+<table class="table">
+<thead>
+  <th>#</th>
+  <th>Entity</th>
+  <th>Field</th>
+  <th>Description</th>
+</thead>
+<tbody>
+{% set i = 1 %}
+	{% for entity in entities %}
+    {% for field in entity.fields %}
+      <tr>
+        <td>{{ i }}</td>
+        <td>{{ field.entity.singularName }}</td>
+        <td>{{ field.name }}</td>
+        <td>{{ field.description }}</td>
+      </tr>
+      {% set i = i+1 %}
+    {% endfor %}
+  {% endfor %}
+  </tbody>
+  </table>
+{% endblock %} #}
+{% block body %}
+
+	{% for entity in entities %}
+<u>{{ entity.singularName }}</u> <br>
+    {% for field in entity.fields %}
+        <b>{{ field.name }}</b> : {{ field.description }}<br>
+    {% endfor %}<br>
+  {% endfor %}
+
+{% endblock %}

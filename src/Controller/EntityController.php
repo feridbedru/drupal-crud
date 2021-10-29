@@ -115,7 +115,7 @@ class EntityController extends AbstractController
         $project = $entity->getNamespace();
         $entities = $entityRepository->findBy(['namespace' => $project]);
 
-        return $this->render('entity/append.html.twig', [
+        return $this->render('entity/documentation.html.twig', [
             'entities' => $entities,
             'project' => $project,
         ]);

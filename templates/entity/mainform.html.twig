@@ -139,7 +139,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         $form['submit'] = [
             '#type' => 'submit',
             '#value' => $this->t('Save'),
-            '#buttom_type' => 'primary'
+            '#button_type' => 'primary'
         ];
 
         $form['#attached']['library'][] = '{{ entity.namespace}}/bootstrap';

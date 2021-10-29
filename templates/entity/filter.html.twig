@@ -34,7 +34,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% endif %}{% endfor %}
             [
                 'data' => $this->t('Operations'),
-                'colspan' => 3,
+                'colspan' => 4,
             ],
         );
 
@@ -44,15 +44,14 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                 '#title' => $this->t('Add New'),
                 '#url' => Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.add'),
                 '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
-                '#attributes' => array('class' => array('button button-action button--primary button--small')),
+                '#attributes' => array('class' => array('button button--action button--primary')),
             ];
         }
 
         $form['filters'] = [
-            '#type'  => 'fieldset',
-            '#title' => $this->t('Filter'),
+            '#type'  => 'container',
             '#open'  => true,
-            '#wrapper_attributes' => ['class' => 'row'],
+            '#attributes' => ['class' => 'row'],
         ];
 
 {% for field in fields %}
@@ -61,6 +60,9 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
             '#type' => '{% if field.type == 1 %}textfield{% elseif field.type == 2 %}number{% elseif field.type == 3 %}url{% elseif field.type == 6 %}tel{% elseif field.type == 7 %}email{% elseif field.type == 8 %}number{% elseif field.type == 10 %}date{% elseif field.type == 11 %}checkbox{% elseif field.type == 13 %}datetime{% else %}textfield{% endif %}',
             '#title' => $this->t('{{ field.name | title  }}'),
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
+            '#attributes' => array('class' => array('form-control')),
+            '#prefix' => '<div class="form-group col-md-2">',
+            '#suffix' => '</div>',
         ];
 
 {% elseif field.isOnFilter == 1 and field.type == 12  %}
@@ -77,8 +79,10 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                 ->t('{{ field.name | title  }}'),
             '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
             '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
-            '#attributes' => array('class' => array('form-select')),
+            '#attributes' => array('class' => array('form-control')),
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
+            '#prefix' => '<div class="form-group col-md-2">',
+            '#suffix' => '</div>',
         ];
 
 {% endif %}
@@ -95,6 +99,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
             '#wrapper_attributes' => ['class' => 'col-md-2 col-xs-12'],
             '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
+            '#prefix' => '<div class="form-group col-md-2">',
+            '#suffix' => '</div>',
         ];
 
         $form['filters']['actions'] = [
@@ -116,7 +122,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         ${{ field.name|replace({' ': '_'}) | lower  }} = "";
 {% endif %}
 {% endfor %}
-        $language = "en";
+        $language = "am";
         $resources = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}${{ field.name|replace({' ': '_'}) | lower  }}, {% endif %}{% endfor %}$language);
 
         // render table
@@ -132,6 +138,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         $form['pager'] = [
             '#type' => 'pager',
         ];
+
+        $form['#attached']['library'][] = '{{ entity.namespace }}/bootstrap';
 
         return $form;
     }
@@ -186,6 +194,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                 $linkEdit = '';
 
                 $url_view = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.show', ['id' => $data->id], []);
+                $url_translate = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.translate', ['parent_id' => $data->id], []);
                 if (\Drupal::currentUser()->hasPermission('{{ entity.singularName|replace({' ': '_'}) |lower }} delete')) {
                     $delete_options = array(
                         'attributes' => array(
@@ -211,12 +220,21 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                     $linkEdit = Link::fromTextAndUrl('Edit', $url_edit);
                     $url_edit->setOptions($edit_options);
                 }
+            
+                $con = Database::getConnection();
+                $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+                    ->condition('id', $data->id)
+                    ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+                $dat = $qry->execute()->fetchAssoc();
+                if ($cur_language_code != 'am'  && $data->language == 'am' &&  !$dat) {
+                    $linkTranslate = Link::fromTextAndUrl('Translate', $url_translate);
+                }
 
                 $linkView = Link::fromTextAndUrl('View', $url_view);
 {% for field in fields %}
 {% if field.type == 12 %}
                 ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';
-                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data['{{ field.name|replace({' ': '_'}) |lower}}'];
+                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data->{{ field.name|replace({' ': '_'}) |lower}};
                 if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
                     $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
                         ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
@@ -232,6 +250,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                     '{{ field.name|replace({' ': '_'}) | lower  }}' => {% if field.type == 12 %}${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}{% else %}$data->{{ field.name|replace({' ': '_'}) | lower  }}{% endif %},
 {% endif %}{% endfor %}
                     'view' => $linkView,
+                    'translate' => ($cur_language_code != 'am'  && $data->language == 'am' &&  !$dat) ? $linkTranslate : "",
                     'edit' =>  $linkEdit,
                     'delete' => $linkDelete,
                 );

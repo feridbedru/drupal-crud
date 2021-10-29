@@ -67,6 +67,8 @@
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can show {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} edit:
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} translate:
+    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can translate {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} delete:
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}"
 </code>
@@ -119,6 +121,14 @@
     _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.translate:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/translate"
+  defaults:
+    _title: "Translate {{ entity.singularName|title }}"
+    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} translate"
 
 {{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
@@ -253,6 +263,12 @@
                 'length' => 5,
                 'not null' => TRUE,
                 'default' => '',
+            ),
+            'parent_id' => array(
+              'type' => 'tinyint',
+              'mysql_type' => 'smallint',
+              'not null' => FALSE,
+              'default' => 0,
             ),
         ),
         'primary key' => array(
@@ -581,7 +597,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% endif %}{% endfor %}
             [
                 'data' => $this->t('Operations'),
-                'colspan' => 3,
+                'colspan' => 4,
             ],
         );
 
@@ -733,6 +749,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                 $linkEdit = '';
 
                 $url_view = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.show', ['id' => $data->id], []);
+                $url_translate = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.translate', ['parent_id' => $data->id], []);
                 if (\Drupal::currentUser()->hasPermission('{{ entity.singularName|replace({' ': '_'}) |lower }} delete')) {
                     $delete_options = array(
                         'attributes' => array(
@@ -758,14 +775,37 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                     $linkEdit = Link::fromTextAndUrl('Edit', $url_edit);
                     $url_edit->setOptions($edit_options);
                 }
-
+                
+                $con = Database::getConnection();
+                $data2 = array();
+                $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+                    ->condition('id', $data->id)
+                    ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+                $dat = $qry->execute()->fetchAssoc();
+                if ($cur_language_code != 'en'  && $data->language == 'en' &&  !$dat) {
+                    $linkTranslate = Link::fromTextAndUrl('Translate', $url_translate);
+                }
                 $linkView = Link::fromTextAndUrl('View', $url_view);
+{% for field in fields %}
+{% if field.type == 12 %}
+                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';
+                ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data->{{ field.name|replace({' ': '_'}) |lower}};
+                if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
+                    $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+                        ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
+                        ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}');
+                    ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+                    ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+                }
+{% endif %}
+{% endfor %}
                 $rows[$data->id] = array(
                     'id' => $count,
 {% for field in fields %}{% if field.isOnIndex == 1 %}
                     '{{ field.name|replace({' ': '_'}) | lower  }}' => $data->{{ field.name|replace({' ': '_'}) | lower  }}, 
 {% endif %}{% endfor %}
                     'view' => $linkView,
+                    'translate' => ($cur_language_code != 'am'  && $data->language == 'am' &&  !$dat) ? $linkTranslate : "",
                     'edit' =>  $linkEdit,
                     'delete' => $linkDelete,
                 );
@@ -857,7 +897,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '#options' => $language_list,
             '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
-            '#prefix' => '&lt;div class="form-group col-md-6">',
+            '#prefix' => '&lt;div class="form-group col-md-3">',
             '#suffix' => '&lt;/div>',
         ];
 
@@ -942,7 +982,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         $form['submit'] = [
             '#type' => 'submit',
             '#value' => $this->t('Save'),
-            '#buttom_type' => 'primary'
+            '#button_type' => 'primary'
         ];
 
         $form['#attached']['library'][] = '{{ entity.namespace}}/bootstrap';
@@ -1094,7 +1134,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
      */
     public function getCacheMaxAge() 
     {
-        return 1;
+        return 0;
     }
 }
 </code>

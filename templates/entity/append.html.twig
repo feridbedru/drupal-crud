@@ -39,6 +39,8 @@
   title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can show {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} edit:
   title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
+{{ entity.singularName|replace({' ': '_'}) |lower }} translate:
+  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can translate {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} delete:
   title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}"
 
@@ -96,6 +98,14 @@
     _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
+
+{{ entity.singularName|replace({' ': '_'}) |lower }}.translate:
+  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/translate"
+  defaults:
+    _title: "Translate {{ entity.singularName|title }}"
+    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
+  requirements:
+    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} translate"
 
 {{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
@@ -240,6 +250,12 @@
                 'length' => 5,
                 'not null' => TRUE,
                 'default' => '',
+            ),
+            'parent_id' => array(
+              'type' => 'tinyint',
+              'mysql_type' => 'smallint',
+              'not null' => FALSE,
+              'default' => 0,
             ),
         ),
         'primary key' => array(
