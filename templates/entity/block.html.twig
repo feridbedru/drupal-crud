@@ -33,6 +33,15 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Block extends BlockB
             ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
         ${{ entity.pluralName|replace({' ': '_'}) |lower }} = $query->execute()->fetchAll();
 
+        if(!${{ entity.pluralName|replace({' ': '_'}) |lower }}){
+            $default_language = UtilityController::getDefaultLanguage();
+            $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+                ->condition('active', 1)
+                ->condition('language', $default_language)
+                ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+            ${{ entity.pluralName|replace({' ': '_'}) |lower }} = $query->execute()->fetchAll();
+        }
+        
         return [
             '#theme' => '{{ entity.pluralName|replace({' ': '_'}) |lower }}_list',
             '#{{ entity.pluralName|replace({' ': '_'}) |lower }}' => ${{ entity.pluralName|replace({' ': '_'}) |lower }},

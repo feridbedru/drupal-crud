@@ -48,13 +48,19 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         $selectedLangCode = $util->getLanguage()['selectedLanguage'];
         $language_list = $util->getLanguage()['languageList'];
 
-        $form['language'] = [
+        $form['group1'] = [
+            '#type'  => 'container',
+            '#open'  => true,
+            '#attributes' => ['class' => 'row'],
+        ];
+
+        $form['group1']['language'] = [
             '#type' => 'select',
             '#title' => $this->t('Language'),
             '#options' => $language_list,
             '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
-            '#prefix' => '<div class="form-group col-md-6">',
+            '#prefix' => '<div class="form-group col-md-2">',
             '#suffix' => '</div>',
         ];
 
@@ -70,7 +76,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
         }
 
 {% endif %}
-        $form['group']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
+        $form['group1']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#title' => $this->t('{{ field.name | title  }}'),
             '#required' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
     {% if field.type == 1 and field.isOnForm == 1 %}

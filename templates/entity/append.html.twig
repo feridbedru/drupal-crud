@@ -87,7 +87,7 @@
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/show"
   defaults:
     _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::show'
-    _title: "Show {{ entity.singularName| title }}"
+    _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} show"
 
@@ -129,7 +129,7 @@
   path: "/{{ entity.singularName|replace({' ': '_'}) |lower }}/{slug}/view"
   defaults:
     _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::view'
-    _title: "View {{ entity.singularName| title }}"
+    _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
   requirements:
     _permission: "access content"
 
@@ -169,6 +169,33 @@
     </div>
   </div>
 
+{# action links #}
+<div class="card">
+    <div class="card-header" id="headingNine">
+      <h5 class="mb-0">
+        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseNine" aria-expanded="false" aria-controls="collapseNine">
+    Action Links
+    </button>
+    append to <span class="text-success">{{ project }}.links.action.yml</span>
+      </h5>
+    </div>
+    <div id="collapseNine" class="collapse" aria-labelledby="headingNine" data-parent="#accordion">
+      <div class="card-body">
+<pre class="line-numbers">
+<code class="language-yaml">
+{% for entity in entities %}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.add: 
+  title: 'Add {{ entity.singularName | title}}'
+  route_name: {{ entity.singularName|replace({' ': '_'}) |lower }}.add
+  appears_on:
+    - {{ entity.singularName|replace({' ': '_'}) |lower }}.index
+
+{% endfor %}
+</code>
+</pre>
+      </div>
+    </div>
+  </div>
 
 <div class="card">
     <div class="card-header" id="headingFour">
@@ -250,12 +277,6 @@
                 'length' => 5,
                 'not null' => TRUE,
                 'default' => '',
-            ),
-            'parent_id' => array(
-              'type' => 'tinyint',
-              'mysql_type' => 'smallint',
-              'not null' => FALSE,
-              'default' => 0,
             ),
         ),
         'primary key' => array(

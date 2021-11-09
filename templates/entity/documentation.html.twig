@@ -8,30 +8,8 @@
 {% block pagetitle %} {{ project }}{% trans %}
 	Project Append{% endtrans %} 
 {% endblock %}
-{# {% block body %}
-<table class="table">
-<thead>
-  <th>#</th>
-  <th>Entity</th>
-  <th>Field</th>
-  <th>Description</th>
-</thead>
-<tbody>
-{% set i = 1 %}
-	{% for entity in entities %}
-    {% for field in entity.fields %}
-      <tr>
-        <td>{{ i }}</td>
-        <td>{{ field.entity.singularName }}</td>
-        <td>{{ field.name }}</td>
-        <td>{{ field.description }}</td>
-      </tr>
-      {% set i = i+1 %}
-    {% endfor %}
-  {% endfor %}
-  </tbody>
-  </table>
-{% endblock %} #}
+
+
 {% block body %}
 
 	{% for entity in entities %}

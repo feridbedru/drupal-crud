@@ -34,19 +34,9 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% endif %}{% endfor %}
             [
                 'data' => $this->t('Operations'),
-                'colspan' => 4,
+                'colspan' => 2,
             ],
         );
-
-        if (\Drupal::currentUser()->hasPermission('{{ entity.singularName|replace({' ': '_'}) |lower }} add')) {
-            $form['link'] = [
-                '#type' => 'link',
-                '#title' => $this->t('Add New'),
-                '#url' => Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.add'),
-                '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
-                '#attributes' => array('class' => array('button button--action button--primary')),
-            ];
-        }
 
         $form['filters'] = [
             '#type'  => 'container',
@@ -75,10 +65,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         }
         $form['filters']['{{ field.name|replace({' ': '_'}) | lower  }}'] = [
             '#type' => 'select',
-            '#title' => $this
-                ->t('{{ field.name | title  }}'),
+            '#title' => $this->t('{{ field.name | title  }}'),
             '#options' => ${{ field.relationEntity.pluralName|replace({' ': '_'}) |lower}},
-            '#wrapper_attributes' => ['class' => 'col-md-6 col-xs-12'],
             '#attributes' => array('class' => array('form-control')),
             '#default_value' => (isset($data['{{ field.name|replace({' ': '_'}) | lower  }}'])) ? $data['{{ field.name|replace({' ': '_'}) | lower  }}'] : '',
             '#prefix' => '<div class="form-group col-md-2">',
@@ -96,7 +84,6 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
             '#type' => 'select',
             '#title' => $this->t('Language'),
             '#options' => $language_list,
-            '#wrapper_attributes' => ['class' => 'col-md-2 col-xs-12'],
             '#attributes' => array('class' => array('form-control')),
             '#default_value' => $selectedLangCode,
             '#prefix' => '<div class="form-group col-md-2">',
@@ -122,7 +109,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         ${{ field.name|replace({' ': '_'}) | lower  }} = "";
 {% endif %}
 {% endfor %}
-        $language = "am";
+        $language = UtilityController::getDefaultLanguage();
         $resources = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}${{ field.name|replace({' ': '_'}) | lower  }}, {% endif %}{% endfor %}$language);
 
         // render table
@@ -180,7 +167,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
         if ($language != "") {
             $query->condition('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}.language', $language, '=');
         }
-        $query->orderBy('id', 'ASC');
+        $query->orderBy('id', 'DESC');
         $results = $query->execute()->fetchAll();
 
         $rows = [];
@@ -199,7 +186,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                     $delete_options = array(
                         'attributes' => array(
                             'class' => array(
-                                'button--danger',
+                                'button button--danger',
                             ),
                         ),
                     );
@@ -212,7 +199,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                     $edit_options = array(
                         'attributes' => array(
                             'class' => array(
-                                'button--secondary',
+                                'button button--secondary',
                             ),
                         ),
                     );
@@ -222,13 +209,6 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                 }
             
                 $con = Database::getConnection();
-                $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
-                    ->condition('id', $data->id)
-                    ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
-                $dat = $qry->execute()->fetchAssoc();
-                if ($cur_language_code != 'am'  && $data->language == 'am' &&  !$dat) {
-                    $linkTranslate = Link::fromTextAndUrl('Translate', $url_translate);
-                }
 
                 $linkView = Link::fromTextAndUrl('View', $url_view);
 {% for field in fields %}
@@ -249,8 +229,6 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
 {% for field in fields %}{% if field.isOnIndex == 1 %}
                     '{{ field.name|replace({' ': '_'}) | lower  }}' => {% if field.type == 12 %}${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}{% else %}$data->{{ field.name|replace({' ': '_'}) | lower  }}{% endif %},
 {% endif %}{% endfor %}
-                    'view' => $linkView,
-                    'translate' => ($cur_language_code != 'am'  && $data->language == 'am' &&  !$dat) ? $linkTranslate : "",
                     'edit' =>  $linkEdit,
                     'delete' => $linkDelete,
                 );
@@ -262,9 +240,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
     function findRows(array &$form, FormStateInterface $form_state)
     {
         $field = $form_state->getValues();
-        $language = $field["language"];
         $rows = [];
-        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}$field["{{ field.name|replace({' ': '_'}) | lower  }}"], {% endif %}{% endfor %} $language);
+        $rows = $this->getDataRows({% for field in fields %}{% if field.isOnFilter == 1 %}$field["{{ field.name|replace({' ': '_'}) | lower  }}"], {% endif %}{% endfor %} $field["language"]);
         $form['table']['#rows'] = $rows;
 
         return $form['table'];

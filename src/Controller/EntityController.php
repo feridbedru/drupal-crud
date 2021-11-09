@@ -113,9 +113,22 @@ class EntityController extends AbstractController
     {
         $em = $this->getDoctrine()->getManager();
         $project = $entity->getNamespace();
+        $entities = $entityRepository->findBy(['namespace' => $project], ['singular_name' => 'ASC']);
+
+        return $this->render('entity/append.html.twig', [
+            'entities' => $entities,
+            'project' => $project,
+        ]);
+    }
+
+    #[Route('/{entity}/custom', name: 'custom_data', methods: ['GET', 'POST'])]
+    public function custom(Entity $entity, EntityRepository $entityRepository): Response
+    {
+        $em = $this->getDoctrine()->getManager();
+        $project = $entity->getNamespace();
         $entities = $entityRepository->findBy(['namespace' => $project]);
 
-        return $this->render('entity/documentation.html.twig', [
+        return $this->render('entity/custom.html.twig', [
             'entities' => $entities,
             'project' => $project,
         ]);

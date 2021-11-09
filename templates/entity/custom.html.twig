@@ -1,0 +1,19 @@
+{# <pre class="line-numbers" >
+<code class="language-yaml">
+{% for entity in entities %}
+{{ entity.singularName|replace({' ': '_'}) |lower }}.add: 
+  title: 'Add {{ entity.singularName | title}}'
+  route_name: {{ entity.singularName|replace({' ': '_'}) |lower }}.add
+  appears_on:
+    - {{ entity.singularName|replace({' ': '_'}) |lower }}.index
+
+{% endfor %}
+</code>
+</pre> #}
+{% for entity in entities %}
+<pre class="line-numbers" >
+<code class="language-yml">
+_title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'<br>
+{% endfor %}
+</code>
+</pre>
