@@ -34,8 +34,8 @@ class EntityController extends AbstractController
                 return $this->redirectToRoute('entity_index');
             }
 
-            $queryBuilder = $entityRepository->findAll();
-            // $queryBuilder = $entityRepository->findBy([], ['id' => 'DESC']);
+            // $queryBuilder = $entityRepository->findAll();
+            $queryBuilder = $entityRepository->findBy([], ['id' => 'DESC']);
             $data = $paginator->paginate($queryBuilder, $request->query->getInt('page', 1), 30);
 
             return $this->render('entity/index.html.twig', [
@@ -59,7 +59,8 @@ class EntityController extends AbstractController
             return $this->redirectToRoute('entity_index');
         }
 
-        $queryBuilder = $entityRepository->findAll();
+        // $queryBuilder = $entityRepository->findAll();
+        $queryBuilder = $entityRepository->findBy([], ['id' => 'DESC']);
         $data = $paginator->paginate($queryBuilder, $request->query->getInt('page', 1), 10);
 
         return $this->render('entity/index.html.twig', [

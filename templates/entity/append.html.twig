@@ -39,8 +39,6 @@
   title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can show {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} edit:
   title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
-{{ entity.singularName|replace({' ': '_'}) |lower }} translate:
-  title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can translate {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} delete:
   title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}"
 
@@ -70,7 +68,7 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }}.index:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/index"
   defaults:
-    _title: "List {{ entity.singularName| title }}"
+    _title: "{{ entity.singularName| title }}"
     _form: '\Drupal\{{ entity.namespace }}\FilterForm\{{ entity.singularName| title | replace({' ': ''}) }}SearchForm'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} list"
@@ -78,7 +76,7 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }}.add:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/add"
   defaults:
-    _title: "Create New {{ entity.singularName| title }}"
+    _title: "Create {{ entity.singularName| title }}"
     _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} add"
@@ -94,24 +92,16 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }}.edit:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/edit"
   defaults:
-    _title: "Edit {{ entity.singularName|title }}"
+    _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
     _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
-
-{{ entity.singularName|replace({' ': '_'}) |lower }}.translate:
-  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/translate"
-  defaults:
-    _title: "Translate {{ entity.singularName|title }}"
-    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
-  requirements:
-    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} translate"
 
 {{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
   defaults:
     _form: '\Drupal\{{ entity.namespace }}\DeleteForm\{{ entity.singularName| title |  replace({' ': ''}) }}DeleteForm'
-    _title: "Delete {{ entity.singularName| title }}"
+    _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
   requirements:
     _access: "TRUE"
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"

@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
+use Drupal\{{ entity.namespace }}\Controller\UtilityController;
 
 /**
  * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
@@ -27,7 +28,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
 
     public function getQuestion()
     {
-        return UtilityController::generateTitle($id, '{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}');
+        return UtilityController::generateTitle($this->id, '{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}');
     }
 
     public function getCancelUrl()
@@ -37,7 +38,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
 
     public function getDescription()
     {
-        return t('Do you want to delete this {{ entity.singularName }} ?');
+        return t('Do you want to delete this {{ entity.singularName }}?');
     }
 
     /**
@@ -93,7 +94,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
             UtilityController::setLog("DELETE", "{{ entity.singularName | capitalize}}", $this->id, $data);
         }
 
-        \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| lower }}.');
+        \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| title }}.');
         $form_state->setRedirect('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
     }
 }

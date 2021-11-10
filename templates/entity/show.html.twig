@@ -67,8 +67,6 @@
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can show {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} edit:
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can edit {{ entity.singularName|lower }}"
-{{ entity.singularName|replace({' ': '_'}) |lower }} translate:
-    title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can translate {{ entity.singularName|lower }}"
 {{ entity.singularName|replace({' ': '_'}) |lower }} delete:
     title: "&lt;b>{{ entity.singularName|title }}&lt;/b>: Users can delete {{ entity.singularName|lower }}"
 </code>
@@ -93,7 +91,7 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }}.index:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/index"
   defaults:
-    _title: "List {{ entity.singularName| title }}"
+    _title: "{{ entity.singularName| title }}"
     _form: '\Drupal\{{ entity.namespace }}\FilterForm\{{ entity.singularName| title | replace({' ': ''}) }}SearchForm'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} list"
@@ -101,7 +99,7 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }}.add:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/add"
   defaults:
-    _title: "Create New {{ entity.singularName| title }}"
+    _title: "Create {{ entity.singularName| title }}"
     _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} add"
@@ -117,24 +115,16 @@
 {{ entity.singularName|replace({' ': '_'}) |lower }}.edit:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/edit"
   defaults:
-    _title: "Edit {{ entity.singularName|title }}"
+    _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
     _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
-
-{{ entity.singularName|replace({' ': '_'}) |lower }}.translate:
-  path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/translate"
-  defaults:
-    _title: "Translate {{ entity.singularName|title }}"
-    _form: '\Drupal\{{ entity.namespace }}\Form\{{ entity.singularName| title |  replace({' ': ''}) }}Form'
-  requirements:
-    _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} translate"
 
 {{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
   defaults:
     _form: '\Drupal\{{ entity.namespace }}\DeleteForm\{{ entity.singularName| title |  replace({' ': ''}) }}DeleteForm'
-    _title: "Delete {{ entity.singularName| title }}"
+    _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
   requirements:
     _access: "TRUE"
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} delete"
@@ -482,6 +472,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Url;
 use Drupal\Core\Database\Database;
+use Drupal\{{ entity.namespace }}\Controller\UtilityController;
 
 /**
  * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
@@ -502,7 +493,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
 
     public function getQuestion()
     {
-        return UtilityController::generateTitle($id, '{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}');
+        return UtilityController::generateTitle($this->id, '{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}');
 
     }
 
@@ -513,7 +504,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
 
     public function getDescription()
     {
-        return t('Do you want to delete this {{ entity.singularName }} ?');
+        return t('Do you want to delete this {{ entity.singularName }}?');
     }
 
     /**
@@ -569,7 +560,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
             UtilityController::setLog("DELETE", "{{ entity.singularName | capitalize}}", $this->id, $data);
         }
 
-        \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| lower }}.');
+        \Drupal::messenger()->addStatus('Succesfully deleted {{ entity.singularName| title }}.');
         $form_state->setRedirect('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
     }
 }
@@ -719,6 +710,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
             '#type' => 'pager',
         ];
 
+        $form['#attached']['library'][] = '{{ entity.namespace}}/bootstrap';
+
         return $form;
     }
 
@@ -803,7 +796,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}SearchForm extends F
                 
                 $linkView = Link::fromTextAndUrl('View', $url_view);
 {% for field in fields %}
-{% if field.isOnIndex == 1 && field.type == 12 %}
+{% if field.isOnIndex == 1 and field.type == 12 %}
                 ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';
                 ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data->{{ field.name|replace({' ': '_'}) |lower}};
                 if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
