@@ -28,7 +28,7 @@ class FieldController extends AbstractController
             $form->handleRequest($request);
 
             if ($form->isSubmitted() && $form->isValid()) {
-                $this->getDoctrine()->getManager()->flush();
+                $fieldRepository->save($field, true);
                 $this->addFlash("success","Updated field successfully.");
 
                 return $this->redirectToRoute('field_index', ["entity" => $entity->getId()]);
@@ -51,10 +51,8 @@ class FieldController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $field->SetEntity($entity);
-            $entityManager->persist($field);
-            $entityManager->flush();
+            $field->SetEntity($entity);;
+            $fieldRepository->save($field, true);
             $this->addFlash("success","Registered field successfully.");
 
             return $this->redirectToRoute('field_index', ["entity" => $entity->getId()]);

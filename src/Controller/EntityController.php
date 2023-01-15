@@ -28,7 +28,7 @@ class EntityController extends AbstractController
             $form->handleRequest($request);
 
             if ($form->isSubmitted() && $form->isValid()) {
-                $this->getDoctrine()->getManager()->flush();
+                $entityRepository->save($entity, true);
                 $this->addFlash("success", "Updated entity successfully.");
 
                 return $this->redirectToRoute('entity_index');
@@ -51,9 +51,7 @@ class EntityController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($entity);
-            $entityManager->flush();
+            $entityRepository->save($entity, true);
             $this->addFlash("success", "Registered entity successfully.");
 
             return $this->redirectToRoute('entity_index');
