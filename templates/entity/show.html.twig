@@ -1068,13 +1068,13 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             $edit = \Drupal::database()->update('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->condition('id', $id)->execute();
 
             if ($edit) {
-                $util->logger("EDIT", "{{ entity.singularName | capitalize}}", $id, $original, $data);
+                $util->setLog("EDIT", "{{ entity.singularName | capitalize}}", $id, $original, $data);
                 $status = 'Updated {{ entity.singularName | capitalize }} Succesfully';
             }
         } else {
             $new = \Drupal::database()->insert('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->execute();
             if ($new) {
-                $util->logger("ADD", "{{ entity.singularName | capitalize}}", $new, $data);
+                $util->setLog("ADD", "{{ entity.singularName | capitalize}}", $new, $data);
                 $status = 'Created {{ entity.singularName | capitalize }} Succesfully';
             }
         }

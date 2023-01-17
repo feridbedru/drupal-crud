@@ -3,22 +3,61 @@
 
 namespace Drupal\{{ entity.namespace }}\Form;
 
-use Drupal\Core\Database\Database;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\{{ entity.namespace }}\Controller\UtilityController;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\{{ entity.namespace }}\{{ entity.singularName | title | replace({' ': ''}) }}Repository;
 {% set file = 0 %}
 {% for field in fields %}{% if (field.type == 9 and file == 0) %}use Drupal\file\Entity\File; {% set file = 1 %} {% endif %}{% endfor %}
 
 
 class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBase
 {
-    use StringTranslationTrait;
 
     public $id;
+
+    /**
+     * The repository for our specialized queries.
+     *
+     * @var \Drupal\{{ entity.namespace }}\{{ entity.singularName | title | replace({' ': ''}) }}Repository
+     */
+    protected $repository;
+
+    /**
+     * The Database Connection.
+     *
+     * @var \Drupal\Core\Database\Connection
+     */
+    protected $database;
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function create(ContainerInterface $container)
+    {
+        $controller = new static($container->get('{{ entity.singularName|replace({' ': '_'}) | lower }}.repository'), $container->get('database'));
+        $controller->setStringTranslation($container->get('string_translation'));
+        return $controller;
+    }
+
+    /**
+     * Construct a new form.
+     *
+     * @param \Drupal\{{ entity.namespace }}\{{ entity.singularName | title | replace({' ': ''}) }}Repository $repository
+     *   The repository service.
+     * 
+     * @param \Drupal\Core\Database\Connection $database
+     *   The database connection.
+     */
+    public function __construct({{ entity.singularName | title | replace({' ': ''}) }}Repository $repository, Connection $database)
+    {
+        $this->repository = $repository;
+        $this->database = $database;
+    }
 
     /**
      * {@inheritdoc}
@@ -33,7 +72,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
      */
     public function buildForm(array $form, FormStateInterface $form_state, $id = NULL)
     {
-        $con = Database::getConnection();
+        $con = $this->database;
         $data = array();
         $this->id = $id;
 
@@ -44,24 +83,10 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             $data = $query->execute()->fetchAssoc();
         }
 
-        $util = new UtilityController();
-        $selectedLangCode = $util->getLanguage()['selectedLanguage'];
-        $language_list = $util->getLanguage()['languageList'];
-
         $form['group1'] = [
             '#type'  => 'container',
             '#open'  => true,
             '#attributes' => ['class' => 'row'],
-        ];
-
-        $form['group1']['language'] = [
-            '#type' => 'select',
-            '#title' => $this->t('Language'),
-            '#options' => $language_list,
-            '#attributes' => array('class' => array('form-control')),
-            '#default_value' => $selectedLangCode,
-            '#prefix' => '<div class="form-group col-md-2">',
-            '#suffix' => '</div>',
         ];
 
 {% for field in fields %}
@@ -135,10 +160,10 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 
 {% endfor %}
 
-        $form['active'] = [
+        $form['status'] = [
             '#type' => 'checkbox',
             '#title' => $this->t('Active'),
-            '#default_value' => (isset($data['active'])) ? $data['active'] : '',
+            '#default_value' => (isset($data['status'])) ? $data['status'] : '',
             '#attributes' => ['class' => ['mt-4 ']],
         ];
 
@@ -182,8 +207,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 {% endif %}
 {% endfor %}
         $util = new UtilityController();
-        $slug = $util->slugify('{{ entity.pluralName|replace({' ': '_'}) |lower }}', $form_state->getValue('{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}'));
-        $data = array(
+        $data = [
 {% for field in fields %}
 {% if field.type == 9 %}
             '{{ field.name|replace({' ': '_'}) | lower  }}' => $file[0],
@@ -193,10 +217,8 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
             '{{ field.name|replace({' ': '_'}) | lower  }}' => $form_state->getValue('{{ field.name|replace({' ': '_'}) | lower  }}'),
 {% endif %}
 {% endfor %}
-            'slug' => $slug,
-            'active' => $form_state->getValue('active'),
-            'language' => $form_state->getValue('language'),
-        );
+            'status' => $form_state->getValue('status'),
+        ];
 {% for field in fields %}
 {% if field.type == 9 %}
         if ($file) {
@@ -207,31 +229,27 @@ class {{ entity.singularName | title | replace({' ': ''}) }}Form extends FormBas
 {% endif %}
 {% endfor %}
 
-        $status = '';
         $id = $this->id;
         if (isset($id)) {
-            $con = Database::getConnection();
-            $qry = $con->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            $qry = $this->database->select('{{ entity.pluralName|replace({' ': '_'}) |lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
                 ->condition('id', $id)
                 ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
             $original = $qry->execute()->fetchAssoc();
-
-            $edit = \Drupal::database()->update('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->condition('id', $id)->execute();
-
+            $data['id'] = $id;
+            $edit = $this->repository->update($data);
             if ($edit) {
-                $util->logger("EDIT", "{{ entity.singularName | capitalize}}", $id, $original, $data);
-                $status = 'Updated {{ entity.singularName | capitalize }} Succesfully';
+                $util->setLog("EDIT", "{{ entity.singularName | capitalize}}", $id, $original, $data);
             }
         } else {
-            $new = \Drupal::database()->insert('{{ entity.pluralName|replace({' ': '_'}) |lower }}')->fields($data)->execute();
+            $data['created_by'] = \Drupal::currentUser()->id();
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $new = $this->repository->insert($data);
             if ($new) {
-                $util->logger("ADD", "{{ entity.singularName | capitalize}}", $new, $data);
-                $status = 'Created {{ entity.singularName | capitalize }} Succesfully';
+                $util->setLog("ADD", "{{ entity.singularName | capitalize}}", $new, $data);
             }
         }
 
-        \Drupal::messenger()->addStatus($status);
-        $url = new Url('{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+        $url = new Url('{{ entity.namespace }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
         $response = new RedirectResponse($url->toString());
         $response->send();
     }

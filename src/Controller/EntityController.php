@@ -78,7 +78,7 @@ class EntityController extends AbstractController
     }
 
     #[Route('/{id}', name: 'entity_delete', methods: ['POST'])]
-    public function delete(Request $request, Entity $entity): Response
+    public function delete(Request $request, Entity $entity, EntityRepository $entityRepository): Response
     {
         // $this->denyAccessUnlessGranted('entity_delete');
         if ($this->isCsrfTokenValid('delete' . $entity->getId(), $request->request->get('_token'))) {
@@ -93,7 +93,7 @@ class EntityController extends AbstractController
 
 
     #[Route('/{entity}/listfields', name: 'fields_list', methods: ['GET', 'POST'])]
-    public function list(Entity $entity): Response
+    public function list(Entity $entity,EntityRepository $entityRepository): Response
     {
         $em = $this->getDoctrine()->getManager();
         $entity_id = $entity->getId();
@@ -110,7 +110,7 @@ class EntityController extends AbstractController
     #[Route('/{entity}/project', name: 'project_append', methods: ['GET', 'POST'])]
     public function project(Entity $entity, EntityRepository $entityRepository): Response
     {
-        $em = $this->getDoctrine()->getManager();
+        // $em = $this->getDoctrine()->getManager();
         $project = $entity->getNamespace();
         $entities = $entityRepository->findBy(['namespace' => $project], ['singular_name' => 'ASC']);
 
@@ -163,6 +163,12 @@ class EntityController extends AbstractController
         $mainform = $mainform->getContent();
         $new_file_path = $current_dir_path . "Form/" . $name . "Form.php";
         $this->processFile($mainform, $new_file_path);
+
+        //generates repository
+        $repository = $this->render('entity/repository.html.twig', ['entity' => $entity, 'fields' => $entity->getFields()]);
+        $repository = $repository->getContent();
+        $new_file_path = $current_dir_path .  $name . "Repository.php";
+        $this->processFile($repository, $new_file_path);
 
         //generates block plugin
         $block = $this->render('entity/block.html.twig', ['entity' => $entity, 'fields' => $entity->getFields()]);

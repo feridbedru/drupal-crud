@@ -1,0 +1,48 @@
+{% block body %}
+$con = Database::getConnection();
+        $query = $con->select('{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{{ entity.pluralName|replace({' ': '_'}) | first | lower }}')
+            ->condition('id', $id)
+            ->fields('{{ entity.pluralName|replace({' ': '_'}) | first | lower }}');
+        $data = $query->execute()->fetchAssoc();
+{% for field in fields %}
+{% if field.type == 9 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = '';
+        $file = File::load($data['{{ field.name|replace({' ': '_'}) | lower  }}']);
+        if ($file)
+            ${{ field.name|replace({' ': '_'}) | lower  }} = $file->createFileUrl();
+{% elseif field.type == 12 %}
+        ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} = '';
+        ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id = $data['{{ field.name|replace({' ': '_'}) |lower}}'];
+        if (${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id) {
+            $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }} = \Drupal::database()->select('{{ field.relationEntity.pluralName|replace({' ': '_'}) | lower }}', '{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}')
+                ->condition('id', ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_id)
+                ->fields('{{ field.relationEntity.pluralName|replace({' ': '_'}) | first | lower }}');
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data = $find_{{ field.relationEntity.singularName|replace({' ': '_'}) | lower }}->execute()->fetchAll();
+            ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} =  ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}}_data[0]->{{ field.relationField.name |replace({' ': '_'}) |lower}};
+        }
+{% elseif field.type == 11 %}
+        ${{ field.name|replace({' ': '_'}) | lower  }} = $data['{{ field.name|replace({' ': '_'}) | lower  }}'] ? "Yes" : "No" ;
+{% endif %}
+{% endfor %}
+        $active = $data['active'] ? "Yes" : "No";
+        $back = Url::fromRoute('{{ entity.singularName|replace({' ': '_'}) |lower }}.index', [])->toString();
+        $html = '
+{% for field in fields %}
+{% if field.type == 11 %}
+        <p><b>' . t('{{ field.name | title}}') . ': </b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '</p>
+{% elseif field.type == 12 %}
+        <p><b>' . t('{{ field.name | title}}') . ': </b> ' . ${{ field.relationEntity.singularName|replace({' ': '_'}) |lower}} . '</p>
+{% elseif field.type == 9 %}
+        <p><b>' . t('{{ field.name | title}}') . ': </b> ' . ${{ field.name|replace({' ': '_'}) | lower  }} . '</p>
+{% else %}
+        <p><b>' . t('{{ field.name | title}}') . ': </b> ' . $data['{{ field.name|replace({' ': '_'}) | lower  }}'] . '</p>
+{% endif %}
+{% endfor %}
+        <p><b>' . t('Active') . ': </b> ' . $active . '</p>';
+        $html .= '<br><a href="' . $back . '" class="button button--primary">' . t('Back') . '</a>';
+
+        return [
+            '#type' => 'inline_template',
+            '#template' => $html
+        ];
+{% endblock %}

@@ -2,27 +2,67 @@
 
 namespace Drupal\residence\Form;
 
-use Drupal\Core\Database\Database;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\residence\Controller\UtilityController;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\residence\HousePurposeRepository;
+use Drupal\residence\Controller\UtilityController;
 
 
-class HouseOwnerTypeForm extends FormBase
+class HousePurposeForm extends FormBase
 {
-    use StringTranslationTrait;
 
     public $id;
+
+    /**
+     * The repository for our specialized queries.
+     *
+     * @var \Drupal\residence\HousePurposeRepository
+     */
+    protected $repository;
+
+    /**
+     * The Database Connection.
+     *
+     * @var \Drupal\Core\Database\Connection
+     */
+    protected $database;
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function create(ContainerInterface $container)
+    {
+        $controller = new static($container->get('house_purpose.repository'), , $container->get('database'));
+        $controller->setStringTranslation($container->get('string_translation'));
+        return $controller;
+    }
+
+    /**
+     * Construct a new form.
+     *
+     * @param \Drupal\residence\HousePurposeRepository $repository
+     *   The repository service.
+     * 
+     * @param \Drupal\Core\Database\Connection $database
+     *   The database connection.
+     */
+    public function __construct(HousePurposeRepository $repository, Connection $database)
+    {
+        $this->repository = $repository;
+        $this->database = $database;
+    }
 
     /**
      * {@inheritdoc}
      */
     public function getFormId()
     {
-        return 'house_owner_type_form';
+        return 'house_purpose_form';
     }
 
     /**
@@ -30,35 +70,21 @@ class HouseOwnerTypeForm extends FormBase
      */
     public function buildForm(array $form, FormStateInterface $form_state, $id = NULL)
     {
-        $con = Database::getConnection();
+        $con = $this->database;
         $data = array();
         $this->id = $id;
 
         if (isset($id)) {
-            $query = $con->select('house_owner_types', 'h')
+            $query = $con->select('house_purposes', 'h')
                 ->condition('id', $id)
                 ->fields('h');
             $data = $query->execute()->fetchAssoc();
         }
 
-        $util = new UtilityController();
-        $selectedLangCode = $util->getLanguage()['selectedLanguage'];
-        $language_list = $util->getLanguage()['languageList'];
-
         $form['group1'] = [
             '#type'  => 'container',
             '#open'  => true,
             '#attributes' => ['class' => 'row'],
-        ];
-
-        $form['group1']['language'] = [
-            '#type' => 'select',
-            '#title' => $this->t('Language'),
-            '#options' => $language_list,
-            '#attributes' => array('class' => array('form-control')),
-            '#default_value' => $selectedLangCode,
-            '#prefix' => '<div class="form-group col-md-2">',
-            '#suffix' => '</div>',
         ];
 
         $form['group1']['name'] = [
@@ -84,10 +110,10 @@ class HouseOwnerTypeForm extends FormBase
         ];
 
 
-        $form['active'] = [
+        $form['status'] = [
             '#type' => 'checkbox',
             '#title' => $this->t('Active'),
-            '#default_value' => (isset($data['active'])) ? $data['active'] : '',
+            '#default_value' => (isset($data['status'])) ? $data['status'] : '',
             '#attributes' => ['class' => ['mt-4 ']],
         ];
 
@@ -122,40 +148,33 @@ class HouseOwnerTypeForm extends FormBase
     public function submitForm(array &$form, FormStateInterface $form_state)
     {
         $util = new UtilityController();
-        $slug = $util->slugify('house_owner_types', $form_state->getValue('name'));
-        $data = array(
+        $data = [
             'name' => $form_state->getValue('name'),
             'description' => $form_state->getValue('description')['value'],
-            'slug' => $slug,
-            'active' => $form_state->getValue('active'),
-            'language' => $form_state->getValue('language'),
-        );
+            'status' => $form_state->getValue('status'),
+        ];
 
-        $status = '';
         $id = $this->id;
         if (isset($id)) {
-            $con = Database::getConnection();
-            $qry = $con->select('house_owner_types', 'h')
+            $qry = $this->database->select('house_purposes', 'h')
                 ->condition('id', $id)
                 ->fields('h');
             $original = $qry->execute()->fetchAssoc();
-
-            $edit = \Drupal::database()->update('house_owner_types')->fields($data)->condition('id', $id)->execute();
-
+            $data['id'] = $id;
+            $edit = $this->repository->update($data);
             if ($edit) {
-                $util->setLog("EDIT", "House owner type", $id, $original, $data);
-                $status = 'Updated House owner type Succesfully';
+                $util->setLog("EDIT", "House purpose", $id, $original, $data);
             }
         } else {
-            $new = \Drupal::database()->insert('house_owner_types')->fields($data)->execute();
+            $data['created_by'] = \Drupal::currentUser()->id();
+            $data['created_at'] = date('Y-m-d H:i:s');
+            $new = $this->repository->insert($data);
             if ($new) {
-                $util->setLog("ADD", "House owner type", $new, $data);
-                $status = 'Created House owner type Succesfully';
+                $util->setLog("ADD", "House purpose", $new, $data);
             }
         }
 
-        \Drupal::messenger()->addStatus($status);
-        $url = new Url('house_owner_type.index');
+        $url = new Url('residence.house_purpose.index');
         $response = new RedirectResponse($url->toString());
         $response->send();
     }

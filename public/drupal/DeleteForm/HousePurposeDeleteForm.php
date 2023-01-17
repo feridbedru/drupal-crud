@@ -1,21 +1,20 @@
-{% block body %}
 <?php
 
-namespace Drupal\{{ entity.namespace }}\DeleteForm;
+namespace Drupal\residence\DeleteForm;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Url;
-use Drupal\{{ entity.namespace }}\Controller\UtilityController;
+use Drupal\residence\Controller\UtilityController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\{{ entity.namespace }}\{{ entity.singularName | title | replace({' ': ''}) }}Repository;
+use Drupal\residence\HousePurposeRepository;
 
 /**
- * Class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm
- * @package Drupal\{{ entity.namespace }}\DeleteForm
+ * Class HousePurposeDeleteForm
+ * @package Drupal\residence\DeleteForm
  */
-class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends ConfirmFormBase
+class HousePurposeDeleteForm extends ConfirmFormBase
 {
 
     public $id;
@@ -23,7 +22,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
     /**
      * The repository for our specialized queries.
      *
-     * @var \Drupal\{{ entity.namespace }}\{{ entity.singularName | title | replace({' ': ''}) }}Repository
+     * @var \Drupal\residence\HousePurposeRepository
      */
     protected $repository;
 
@@ -39,7 +38,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
      */
     public static function create(ContainerInterface $container)
     {
-        $controller = new static($container->get('{{ entity.singularName|replace({' ': '_'}) | lower }}.repository'), $container->get('database'));
+        $controller = new static($container->get('house_purpose.repository'), , $container->get('database'));
         $controller->setStringTranslation($container->get('string_translation'));
         return $controller;
     }
@@ -47,13 +46,13 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
     /**
      * Construct a new controller.
      *
-     * @param \Drupal\{{ entity.namespace }}\{{ entity.singularName | title | replace({' ': ''}) }}Repository $repository
+     * @param \Drupal\residence\HousePurposeRepository $repository
      *   The repository service.
      * 
      * @param \Drupal\Core\Database\Connection $database
      *   The database connection.
      */
-    public function __construct({{ entity.singularName | title | replace({' ': ''}) }}Repository $repository, Connection $database)
+    public function __construct(HousePurposeRepository $repository, Connection $database)
     {
         $this->repository = $repository;
         $this->database = $database;
@@ -64,22 +63,22 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
      */
     public function getFormId()
     {
-        return '{{ entity.singularName|replace({' ': '_'}) |lower }}_delete_form';
+        return 'house_purpose_delete_form';
     }
 
     public function getQuestion()
     {
-        return UtilityController::generateTitle($this->id, '{{ entity.pluralName|replace({' ': '_'}) | lower }}', '{% for field in fields %}{% if field.isSluggable %}{{ field.name |replace({' ': '_'}) | lower }}{% endif %}{% endfor %}');
+        return UtilityController::generateTitle($this->id, 'house_purposes', 'name');
     }
 
     public function getCancelUrl()
     {
-        return new Url('{{ entity.namespace }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+        return new Url('residence.house_purpose.index');
     }
 
     public function getDescription()
     {
-        return t('Do you want to delete this {{ entity.singularName }}?');
+        return t('Do you want to delete this house purpose?');
     }
 
     /**
@@ -122,8 +121,7 @@ class {{ entity.singularName | title | replace({' ': ''}) }}DeleteForm extends C
     {
         $data = $this->repository->load(['id' => $this->id]);
         $this->repository->delete(['id' => $this->id]);
-        UtilityController::setLog("DELETE", "{{ entity.singularName | capitalize}}", $this->id, $data);
-        $form_state->setRedirect('{{ entity.namespace }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.index');
+        UtilityController::setLog("DELETE", "House purpose", $this->id, $data);
+        $form_state->setRedirect('residence.house_purpose.index');
     }
 }
-{% endblock %}
