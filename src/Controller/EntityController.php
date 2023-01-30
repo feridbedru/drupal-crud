@@ -6,6 +6,7 @@ use App\Entity\Entity;
 use App\Entity\Field;
 use App\Form\EntityType;
 use App\Repository\EntityRepository;
+use App\Repository\FieldRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -93,13 +94,13 @@ class EntityController extends AbstractController
 
 
     #[Route('/{entity}/listfields', name: 'fields_list', methods: ['GET', 'POST'])]
-    public function list(Entity $entity,EntityRepository $entityRepository): Response
+    public function list(Entity $entity, FieldRepository $fieldRepository): Response
     {
-        $em = $this->getDoctrine()->getManager();
+        // $em = $this->getDoctrine()->getManager();
         $entity_id = $entity->getId();
 
-        $fields_repo = $em->getRepository(Field::class);
-        $fields = $fields_repo->findBy(['entity' => $entity_id]);
+        // $fields_repo = $entityRepository->getRepository(Field::class);
+        $fields = $fieldRepository->findBy(['entity' => $entity_id]);
         $fields_list = array();
         foreach ($fields as $key => $value) {
             $fields_list[$value->getId()] = $value->getName();

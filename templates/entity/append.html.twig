@@ -65,7 +65,7 @@
 <code class="language-yaml">
 {% for entity in entities %}
 #{{ entity.singularName|replace({' ': '_'}) |lower }}
-{{ entity.singularName|replace({' ': '_'}) |lower }}.index:
+{{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.index:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/index"
   defaults:
     _title: "{{ entity.singularName| title }}"
@@ -73,7 +73,7 @@
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} list"
 
-{{ entity.singularName|replace({' ': '_'}) |lower }}.add:
+{{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.add:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/add"
   defaults:
     _title: "Create {{ entity.singularName| title }}"
@@ -81,7 +81,7 @@
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} add"
     
-{{ entity.singularName|replace({' ': '_'}) |lower }}.show:
+{{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.show:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/show"
   defaults:
     _controller: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::show'
@@ -89,7 +89,7 @@
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} show"
 
-{{ entity.singularName|replace({' ': '_'}) |lower }}.edit:
+{{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.edit:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/edit"
   defaults:
     _title_callback: '\Drupal\{{ entity.namespace }}\Controller\{{ entity.singularName| title |  replace({' ': ''}) }}Controller::getTitle'
@@ -97,7 +97,7 @@
   requirements:
     _permission: "{{ entity.singularName|replace({' ': '_'}) |lower }} edit"
 
-{{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
+{{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.delete:
   path: "/admin/{{ entity.singularName|replace({' ': '_'}) |lower }}/{id}/delete"
   defaults:
     _form: '\Drupal\{{ entity.namespace }}\DeleteForm\{{ entity.singularName| title |  replace({' ': ''}) }}DeleteForm'
@@ -149,7 +149,7 @@
 {{ entity.namespace| lower }}.{{ entity.singularName|lower }}:
   title: "{{ entity.singularName|title }}"
   description: "Configure {{ entity.singularName|title }}"
-  route_name: {{ entity.singularName| replace({' ': '_'}) | lower }}.index
+  route_name: {{ project }}.{{ entity.singularName| replace({' ': '_'}) | lower }}.index
   menu_name: {{ entity.namespace| lower }}
 
 {% endfor %}
@@ -174,11 +174,11 @@
 <pre class="line-numbers">
 <code class="language-yaml">
 {% for entity in entities %}
-{{ entity.singularName|replace({' ': '_'}) |lower }}.add: 
+{{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.add: 
   title: 'Add {{ entity.singularName | title}}'
-  route_name: {{ entity.singularName|replace({' ': '_'}) |lower }}.add
+  route_name: {{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.add
   appears_on:
-    - {{ entity.singularName|replace({' ': '_'}) |lower }}.index
+    - {{ project }}.{{ entity.singularName|replace({' ': '_'}) |lower }}.index
 
 {% endfor %}
 </code>
@@ -202,15 +202,15 @@
 <code class="language-php">
 {% for entity in entities %}
 //{{ entity.pluralName| title }}
-    $schema['{{ entity.pluralName|replace({' ': '_'}) |lower }}'] = array(
-        'fields' => array(
-            'id' => array(
+    $schema['{{ entity.pluralName|replace({' ': '_'}) |lower }}'] = [
+        'fields' => [
+            'id' => [
                 'type' => 'serial',
                 'unsigned' => TRUE,
                 'not null' => TRUE,
-            ),
+            ],
             {% for field in entity.fields %}
-'{{ field.name|replace({' ': '_'}) | lower  }}' => array(
+'{{ field.name|replace({' ': '_'}) | lower  }}' => [
     {% if field.type == 1 %}
             'type' => 'varchar',
                 'length' => {{ field.length ? field.length : 255 }},
@@ -248,31 +248,31 @@
                 'mysql_type' => 'date',
     {% endif %}
             'not null' => {{ field.isNullable ? 'FALSE' : 'TRUE' }},
-            ),
+              ],
             {% endfor %}
-'slug' => array(
+'slug' => [
                 'type' => 'varchar',
                 'length' => 255,
                 'default' => '',
                 'not null' => TRUE,
-            ),
-            'active' => array(
+            ],
+            'active' => [
                 'type' => 'tinyint',
                 'mysql_type' => 'smallint',
                 'not null' => FALSE,
                 'default' => 1,
-            ),
-            'language' => array(
+            ],
+            'language' => [
                 'type' => 'varchar',
                 'length' => 5,
                 'not null' => TRUE,
                 'default' => '',
-            ),
-        ),
-        'primary key' => array(
+            ],
+        ],
+        'primary key' => [
             'id',
-        ),
-    );
+        ],
+    ];
 	
 {% endfor %}
     
